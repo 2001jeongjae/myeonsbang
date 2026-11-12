@@ -17,3 +17,9 @@
 - Firebase 프로젝트 `myeonsbang` (Spark 무료 요금제): Firestore(서울, asia-northeast3), 익명 로그인
 - Vercel: 이 저장소의 main 브랜치에 올리면 자동으로 다시 배포됩니다.
 - `index.html` 안의 Firebase 설정값은 어느 프로젝트인지 알려 주는 공개 주소라 저장소에 있어도 됩니다. 데이터는 보안 규칙이 지킵니다.
+
+## 디자인
+
+- 색·모양: 흰 바탕에 코랄 한 가지만 포인트로 쓰는 Airbnb 느낌 ([awesome-design-md](https://github.com/VoltAgent/awesome-design-md)의 Airbnb DESIGN.md 참고, 로고·이름은 쓰지 않음)
+- 규칙: [taste-skill](https://github.com/Leonxlnx/taste-skill) (MIT) 중 앱에 맞는 것만 적용: 버튼·카드·링크 모양 한 벌, 누를 곳 44px 이상, 본문 대비 7:1, 기울인 것 없음, 보라색 없음, 버튼은 누르면 눌리고 카드는 올리면 2px 뜸
+- 글꼴: Pretendard (jsDelivr)
