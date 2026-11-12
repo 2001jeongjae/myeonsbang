@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>면스방</title>
+<meta name="description" content="서류 합격 후 같은 회사 면접을 앞둔 사람끼리 면접 스터디를 모집하고 신청하는 곳">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="면스방">
+<meta property="og:title" content="면스방 · 면접 스터디 모집">
+<meta property="og:description" content="서류 합격했다면 면스부터. 같은 직무끼리, 다른 직무끼리 면접 스터디를 모집하고 신청해요.">
+<meta property="og:url" content="https://myeonsbang.vercel.app/">
+<meta property="og:image" content="https://myeonsbang.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<script>
+/* 카카오톡 안 브라우저로 열리면 한 번만 바깥 브라우저로 옮긴다 (다음에 들어와도 같은 사람으로 보이게) */
+(function () {
+  try {
+    if (/KAKAOTALK/i.test(navigator.userAgent) && !sessionStorage.getItem('mb-ext')) {
+      sessionStorage.setItem('mb-ext', '1');
+      location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location.href);
+    }
+  } catch (e) {}
+})();
+window.MYEONSBANG_FIREBASE = {"apiKey": "AIzaSyA2HMcMdonN2FxNsduETGA4io_FHG_2RA4", "authDomain": "myeonsbang.firebaseapp.com", "projectId": "myeonsbang", "storageBucket": "myeonsbang.firebasestorage.app", "messagingSenderId": "933880268081", "appId": "1:933880268081:web:775643f48c0de3b460dc10"};
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  /* 면접 대기표: 왼쪽 D-day 꼬리표 + 오른쪽 모집 정보를 한 줄에 하나씩. 도장(방장·로고)만 붉게. */
+  --paper: #eef1f5;
+  --card: #ffffff;
+  --ink: #131a2a;
+  --muted: #5a6478;
+  --line: #d6dce6;
+  --accent: #1d4ed8;
+  --accent-ink: #ffffff;
+  --accent-soft: #e4ebfd;
+  --stamp: #c8361f;
+  --font-display: 'Black Han Sans', 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --font-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+  /* 조건·상태 색 (강조색과 따로 씀) */
+  --same: #0e7468; --same-bg: #e0f2ef;
+  --diverse: #a24d07; --diverse-bg: #fcecd8;
+  --any: #4f5a6e; --any-bg: #e7ebf1;
+  --ok: #157347; --ok-bg: #e1f3e8;
+  --wait: #845400; --wait-bg: #fcefcf;
+  --bad: #b3261e; --bad-bg: #fbe4e1;
+  --shadow: 0 1px 2px rgba(19, 26, 42, .05), 0 6px 16px rgba(19, 26, 42, .06);
+  --radius: 14px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1420; --card: #171e2c; --ink: #e8ecf4; --muted: #9ba6bb; --line: #2b3448;
+    --accent: #7ea4ff; --accent-ink: #0b1020; --accent-soft: #1c2949; --stamp: #ff7b63;
+    --same: #5fd0bf; --same-bg: #11302c; --diverse: #f3a85c; --diverse-bg: #38270f;
+    --any: #b3bccd; --any-bg: #222b3b; --ok: #6ad39a; --ok-bg: #133224;
+    --wait: #f0c35a; --wait-bg: #35290f; --bad: #ff8a80; --bad-bg: #3a1a19;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1420; --card: #171e2c; --ink: #e8ecf4; --muted: #9ba6bb; --line: #2b3448;
+  --accent: #7ea4ff; --accent-ink: #0b1020; --accent-soft: #1c2949; --stamp: #ff7b63;
+  --same: #5fd0bf; --same-bg: #11302c; --diverse: #f3a85c; --diverse-bg: #38270f;
+  --any: #b3bccd; --any-bg: #222b3b; --ok: #6ad39a; --ok-bg: #133224;
+  --wait: #f0c35a; --wait-bg: #35290f; --bad: #ff8a80; --bad-bg: #3a1a19;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .3);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  word-break: keep-all; overflow-wrap: anywhere;
+}
+a { color: var(--accent); }
+button, input, select, textarea { font: inherit; color: inherit; }
+h1, h2, h3 { text-wrap: balance; }
+.sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+main { min-height: 60vh; padding-bottom: 32px; }
+body.has-bar main { padding-bottom: 104px; }
+body.sheet-open { overflow: hidden; }
+
+/* 체험 모드 띠 */
+.demo { background: var(--wait-bg); border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.demo-in { max-width: 720px; margin: 0 auto; padding: 8px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.demo-tag { font-weight: 700; background: var(--wait); color: var(--card); padding: 1px 9px; border-radius: 999px; }
+.demo-text { flex: 1 1 240px; }
+.demo-pick { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.demo-pick select { padding: 4px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); max-width: 210px; }
+.link { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font-size: inherit; font-weight: 600; }
+.link.danger { color: var(--bad); }
+
+/* 머리 */
+.top { position: sticky; top: 0; z-index: 20; background: var(--paper); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 720px; margin: 0 auto; padding: 10px 16px; display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "logo tabs new"; align-items: center; gap: 8px 16px; }
+.logo { grid-area: logo; display: flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; }
+.logo-mark { display: grid; place-items: center; width: 32px; height: 32px; border: 2.5px solid var(--stamp); border-radius: 8px; color: var(--stamp); font-family: var(--font-display); font-size: 18px; line-height: 1; transform: rotate(-8deg); }
+.logo-text { font-family: var(--font-display); font-size: 23px; letter-spacing: .5px; }
+.tabs { grid-area: tabs; display: flex; gap: 4px; }
+.tabs a { padding: 6px 11px; border-radius: 9px; color: var(--muted); text-decoration: none; font-weight: 600; font-size: 15px; }
+.tabs a[aria-current="page"] { color: var(--ink); background: var(--card); box-shadow: var(--shadow); }
+.btn-new { grid-area: new; }
+@media (max-width: 460px) {
+  .top-in { grid-template-columns: auto 1fr; grid-template-areas: "logo new" "tabs tabs"; }
+  .btn-new { justify-self: end; }
+}
+
+/* 버튼 */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; padding: 8px 15px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.btn:hover { border-color: var(--muted); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover { border-color: var(--accent); filter: brightness(1.08); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
+.btn-danger { background: var(--bad); border-color: var(--bad); color: #fff; }
+.danger-outline { color: var(--bad); border-color: var(--bad); }
+.btn-small { min-height: 36px; padding: 5px 13px; font-size: 14px; }
+.btn-wide { width: 100%; min-height: 52px; font-size: 17px; }
+
+/* 게시판 */
+.hero { padding: 24px 0 4px; }
+.hero h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(25px, 6.4vw, 34px); line-height: 1.25; margin: 0 0 8px; letter-spacing: .3px; }
+.hero p { margin: 0; color: var(--muted); max-width: 60ch; }
+.filters { display: grid; gap: 10px; margin: 18px 0 6px; }
+.search input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg-btn { padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--muted); font-weight: 600; font-size: 14px; cursor: pointer; }
+.seg-btn.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.filter-row select { padding: 7px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); font-size: 14px; }
+.check { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.check input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+.count { color: var(--muted); font-size: 14px; margin: 14px 0 8px; }
+.count b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* 대기표 카드 */
+.tickets { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.ticket { position: relative; display: grid; grid-template-columns: 86px 1fr; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); color: var(--ink); text-decoration: none; }
+.ticket:hover { border-color: var(--muted); }
+.ticket::before, .ticket::after { content: ""; position: absolute; left: 78px; width: 16px; height: 16px; border-radius: 50%; background: var(--paper); border: 1px solid var(--line); }
+.ticket::before { top: -9px; clip-path: inset(50% 0 0 0); }
+.ticket::after { bottom: -9px; clip-path: inset(0 0 50% 0); }
+.stub { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 4px; border-right: 2px dashed var(--line); border-radius: var(--radius) 0 0 var(--radius); background: var(--accent-soft); text-align: center; }
+.ticket.urgent .stub { background: var(--bad-bg); }
+.dd { font-family: var(--font-display); font-size: 25px; line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
+.ticket.urgent .dd, .d-stub.urgent .dd { color: var(--stamp); }
+.dd-date { font-size: 12px; color: var(--muted); font-weight: 600; }
+.tk-body { padding: 12px 14px; display: grid; gap: 6px; min-width: 0; }
+.tk-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.company { font-weight: 700; font-size: 17px; }
+.tk-title { margin: 0; font-weight: 600; }
+.tk-jobs { margin: 0; font-size: 13px; color: var(--muted); }
+.ticket.st-full, .ticket.st-closed, .ticket.st-past { opacity: .7; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 6px; font-size: 12.5px; font-weight: 600; background: var(--any-bg); color: var(--any); }
+.chip.rule-same { background: var(--same-bg); color: var(--same); }
+.chip.rule-diverse { background: var(--diverse-bg); color: var(--diverse); }
+.chip.rule-any { background: var(--any-bg); color: var(--any); }
+.chip.ex { background: transparent; border: 1px dashed var(--muted); color: var(--muted); }
+.chip.ok { background: var(--ok-bg); color: var(--ok); }
+.chip.wait { background: var(--wait-bg); color: var(--wait); }
+.chip.no { background: var(--bad-bg); color: var(--bad); }
+.pill { flex: none; padding: 2px 9px; border-radius: 999px; font-size: 12.5px; font-weight: 700; }
+.pill.st-open { background: var(--ok-bg); color: var(--ok); }
+.pill.st-full, .pill.st-closed { background: var(--any-bg); color: var(--any); }
+.pill.st-past { background: var(--bad-bg); color: var(--bad); }
+.tk-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--muted); }
+.seats { display: inline-flex; gap: 3px; }
+.seats i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.seats i.on { background: var(--ink); border-color: var(--ink); }
+.num { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--ink); }
+.by { margin-left: auto; }
+
+/* 빈 화면 */
+.empty { background: var(--card); border: 1px dashed var(--line); border-radius: var(--radius); padding: 28px 18px; text-align: center; display: grid; gap: 8px; justify-items: center; margin-top: 12px; }
+.empty p { margin: 0; color: var(--muted); }
+.empty .empty-t { color: var(--ink); font-weight: 700; font-size: 17px; }
+
+/* 글 상세 */
+.back { display: inline-block; margin: 16px 0 10px; color: var(--muted); text-decoration: none; font-weight: 600; }
+.detail { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; display: grid; gap: 20px; }
+.d-head { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+.d-stub { display: grid; align-content: center; justify-items: center; gap: 6px; width: 94px; min-height: 94px; border-radius: 12px; background: var(--accent-soft); text-align: center; padding: 8px; }
+.d-stub.urgent { background: var(--bad-bg); }
+.d-stub .dd { font-size: 29px; }
+.d-titles { min-width: 0; }
+.d-titles .company { margin: 0; color: var(--muted); font-size: 15px; font-weight: 600; }
+.d-titles h1 { font-size: clamp(20px, 5.2vw, 25px); line-height: 1.3; margin: 2px 0 8px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 0; }
+.facts div { background: var(--paper); border-radius: 10px; padding: 9px 12px; }
+.facts dt { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.facts dd { margin: 2px 0 0; font-weight: 600; }
+.rulebox { border-radius: 12px; padding: 12px 14px; border-left: 4px solid var(--any); background: var(--any-bg); }
+.rulebox.rule-same { background: var(--same-bg); border-color: var(--same); }
+.rulebox.rule-diverse { background: var(--diverse-bg); border-color: var(--diverse); }
+.rulebox b { display: block; margin-bottom: 2px; }
+.d-sec h2 { font-size: 17px; margin: 0 0 10px; display: flex; gap: 8px; align-items: baseline; }
+.d-sec h3 { font-size: 15px; margin: 4px 0 8px; display: flex; gap: 6px; align-items: baseline; }
+main > .d-sec { margin-top: 22px; }
+.intro { margin: 0; white-space: pre-wrap; }
+.tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 7px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); max-width: 100%; }
+.tag-nick { font-weight: 700; }
+.tag-job { font-size: 13px; color: var(--muted); }
+.tag-host { font-size: 12px; font-weight: 700; color: var(--stamp); border: 1.5px solid var(--stamp); border-radius: 5px; padding: 0 5px; transform: rotate(-4deg); }
+.tag-intro { flex-basis: 100%; font-size: 13px; color: var(--muted); }
+.tag.empty-seat { border-style: dashed; color: var(--muted); background: transparent; }
+.host-panel { border-top: 1px dashed var(--line); padding-top: 18px; }
+.appls { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.appl { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; }
+.appl-who { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.appl-when { font-size: 12.5px; color: var(--muted); margin-left: auto; }
+.appl-intro { margin: 0; font-size: 14px; }
+.appl-act { display: flex; gap: 8px; justify-content: flex-end; }
+.warn { margin: 0; font-size: 13.5px; font-weight: 600; color: var(--bad); }
+.host-act { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.muted { color: var(--muted); margin: 0; }
+.page-h { font-family: var(--font-display); font-weight: 400; font-size: 29px; margin: 22px 0 4px; }
+
+/* 아래 고정 버튼 줄 */
+.actionbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--card); border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(0, 0, 0, .06); }
+.bar-in { max-width: 720px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.bar-left, .bar-right { display: flex; align-items: center; gap: 8px; }
+.bar-note { font-weight: 600; color: var(--muted); font-size: 14px; }
+.bar-note.ok { color: var(--ok); }
+.bar-note.wait { color: var(--wait); }
+
+/* 입력 */
+.form { display: grid; gap: 18px; }
+.form.tight { gap: 12px; }
+.form h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(25px, 6vw, 31px); margin: 0; }
+.lead { margin: -8px 0 0; color: var(--muted); }
+.group { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); padding: 16px; margin: 0; display: grid; gap: 18px; min-width: 0; }
+.group legend { font-weight: 700; padding: 0 6px; font-size: 14px; color: var(--muted); }
+.field { display: grid; gap: 7px; min-width: 0; }
+.field.sub { margin-top: 6px; }
+.field > label, .label { font-weight: 600; font-size: 15px; }
+.opt { font-weight: 400; color: var(--muted); font-size: 13px; }
+.field input:not([type="checkbox"]):not([type="radio"]), .field select, .field textarea { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); min-height: 46px; }
+.field textarea { resize: vertical; min-height: 104px; }
+.field input:disabled { opacity: .5; }
+.job-pick { display: grid; gap: 8px; }
+.inline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.inline input[type="date"] { flex: 1 1 180px; width: auto; }
+.err { margin: 0; color: var(--bad); font-size: 13.5px; font-weight: 600; }
+.err:empty { display: none; }
+.hint { margin: 0; color: var(--muted); font-size: 13px; }
+.meta-row { display: flex; justify-content: space-between; gap: 8px; }
+.counter { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pill-radio { position: relative; display: inline-flex; }
+.pill-radio input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.pill-radio span { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); font-weight: 600; font-size: 14px; }
+.pill-radio input:checked + span { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.pill-radio input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cards { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.card-radio { position: relative; display: grid; gap: 3px; padding: 12px 14px 12px 42px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--paper); cursor: pointer; }
+.card-radio input { position: absolute; left: 14px; top: 15px; width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+.cr-t { font-weight: 700; }
+.cr-d { font-size: 13px; color: var(--muted); }
+.card-radio:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.card-radio.rule-same:has(input:checked) { border-color: var(--same); background: var(--same-bg); }
+.card-radio.rule-diverse:has(input:checked) { border-color: var(--diverse); background: var(--diverse-bg); }
+.card-radio.rule-any:has(input:checked) { border-color: var(--any); background: var(--any-bg); }
+.stepper { display: inline-flex; align-items: center; gap: 8px; }
+.stepper button { width: 42px; height: 42px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); font-size: 20px; font-weight: 700; cursor: pointer; }
+.stepper output { min-width: 28px; text-align: center; font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.unit { color: var(--muted); font-size: 14px; }
+.submit-bar { position: sticky; bottom: 0; padding: 12px 0 16px; background: linear-gradient(to top, var(--paper) 72%, rgba(0, 0, 0, 0)); }
+
+/* 아래에서 올라오는 창 */
+#sheet-root { position: fixed; inset: 0; z-index: 50; }
+.scrim { position: absolute; inset: 0; background: rgba(8, 12, 22, .48); }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; overflow: auto; background: var(--card); border-radius: 18px 18px 0 0; padding: 20px 18px 18px; display: grid; gap: 12px; animation: sheet-up .2s ease-out; }
+.sheet h2 { margin: 0; font-size: 20px; }
+.sheet-sub { margin: -4px 0 0; color: var(--muted); font-size: 14px; }
+.sheet-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+.sheet-actions .btn { min-height: 48px; flex: 1; }
+.check-line { margin: 0; padding: 10px 12px; border-radius: 10px; font-weight: 600; font-size: 14px; background: var(--paper); color: var(--muted); }
+.check-line.ok { background: var(--ok-bg); color: var(--ok); }
+.check-line.bad { background: var(--bad-bg); color: var(--bad); }
+.share-text { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); font-size: 14px; line-height: 1.6; resize: none; }
+@media (min-width: 640px) {
+  .sheet { left: 50%; right: auto; bottom: auto; top: 50%; width: min(520px, calc(100% - 32px)); transform: translate(-50%, -50%); border-radius: 18px; animation: none; }
+  .sheet-actions .btn { flex: none; min-width: 110px; }
+}
+@keyframes sheet-up { from { transform: translateY(28px); } to { transform: none; } }
+
+/* 알림 */
+.toast { position: fixed; left: 50%; bottom: 24px; z-index: 60; transform: translate(-50%, 16px); max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 12px; background: var(--ink); color: var(--paper); font-weight: 600; font-size: 14px; text-align: center; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+body.has-bar .toast { bottom: 88px; }
+
+.loading { color: var(--muted); text-align: center; padding: 48px 0; margin: 0; }
+.prose { gap: 10px; }
+.prose h2 { font-size: 17px; margin: 10px 0 0; }
+.prose h2:first-child { margin-top: 0; }
+.prose p, .prose ul { margin: 0; max-width: 62ch; }
+.prose ul { padding-left: 20px; display: grid; gap: 4px; }
+.foot { color: var(--muted); font-size: 13px; padding: 8px 16px 40px; }
+.foot a { color: var(--muted); }
+body.has-bar .foot { padding-bottom: 110px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+</style>
+</head>
+<body>
+<div id="demo" class="demo" hidden></div>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="#board" aria-label="면스방 처음 화면"><span class="logo-mark" aria-hidden="true">면</span><span class="logo-text">면스방</span></a>
+    <nav class="tabs" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a href="#me" data-tab="me">내 활동</a></nav>
+    <a class="btn btn-primary btn-new" href="#new">모집 글 쓰기</a>
+  </div>
+</header>
+<main id="view" class="wrap"><p class="loading">불러오는 중이에요…</p></main>
+<footer class="foot wrap"><p>면스방 · <a href="#about">이용 안내</a> · 실명·연락처·학교명은 적지 마세요.</p></footer>
+<div id="actionbar" class="actionbar" hidden></div>
+<div id="sheet-root" hidden></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script>
+/* 면스방 규칙: 화면과 저장소가 함께 쓰는 순수 함수 모음 (나중에 Firebase 버전에서도 그대로 씀) */
+(function (root) {
+  'use strict';
+
+  const JOBS = ['생산기술', '공정기술', '설비·보전', '품질', '연구개발', '설계', '생산관리', '구매·SCM',
+    '영업', '마케팅', '인사', '재무·회계', '경영지원', 'IT·SW', '데이터·AI'];
+
+  const STAGES = ['1차 실무', '2차 임원·인성', 'PT', '토론', '기타'];
+
+  const COMPANIES = ['현대자동차', '기아', '현대모비스', '현대위아', '현대제철', '현대트랜시스', '삼성전자',
+    '삼성SDI', '삼성전기', '삼성디스플레이', 'SK하이닉스', 'SK온', 'LG전자', 'LG에너지솔루션', 'LG디스플레이',
+    '포스코', 'HD현대중공업', '한화에어로스페이스', '두산에너빌리티', 'CJ제일제당', '한국전력공사'];
+
+  const RULES = {
+    same: { label: '같은 직무끼리', desc: '글에 적힌 직무와 같은 사람만 신청할 수 있어요.' },
+    diverse: { label: '다른 직무끼리', desc: '참가자 직무가 모두 달라야 해요. 이미 있는 직무로는 신청할 수 없어요.' },
+    any: { label: '직무 무관', desc: '직무와 상관없이 누구나 신청할 수 있어요.' }
+  };
+
+  const JOIN = {
+    instant: { label: '바로 참가', desc: '조건이 맞으면 신청과 동시에 참가돼요. 선착순이에요.' },
+    approve: { label: '방장 수락', desc: '신청을 받고, 방장이 수락한 사람만 참가해요.' }
+  };
+
+  const STATUS = { open: '모집 중', full: '모집 완료', closed: '마감', past: '면접 지남' };
+
+  /* 직무 비교: 띄어쓰기·기호를 빼고, 흔한 줄임말은 같은 직무로 본다 */
+  const ALIASES = {
+    '생기': '생산기술', '생산기술직': '생산기술', '공정': '공정기술', '설비': '설비·보전', '보전': '설비·보전',
+    '품질보증': '품질', '품질관리': '품질', 'qa': '품질', 'qc': '품질', 'r&d': '연구개발', 'rnd': '연구개발',
+    '연구': '연구개발', 'scm': '구매·SCM', '구매': '구매·SCM', 'hr': '인사', '재무': '재무·회계', '회계': '재무·회계',
+    'it': 'IT·SW', 'sw': 'IT·SW', '소프트웨어': 'IT·SW', '데이터': '데이터·AI', 'ai': '데이터·AI'
+  };
+
+  function squash(s) {
+    return String(s == null ? '' : s).toLowerCase().replace(/[\s·・\/\-_.,()&]/g, '');
+  }
+
+  const KEY_MAP = {};
+  JOBS.forEach(function (j) { KEY_MAP[squash(j)] = squash(j); });
+  Object.keys(ALIASES).forEach(function (k) { KEY_MAP[squash(k)] = squash(ALIASES[k]); });
+
+  function jobKey(job) {
+    const k = squash(job);
+    return KEY_MAP[k] || k;
+  }
+
+  function canonicalJob(job) {
+    const key = jobKey(job);
+    const preset = JOBS.find(function (j) { return squash(j) === key; });
+    return preset || String(job == null ? '' : job).trim().slice(0, 20);
+  }
+
+  /* 날짜: 모두 한국 시간 기준 'YYYY-MM-DD' */
+  const DAY = 86400000;
+  const WEEK = ['일', '월', '화', '수', '목', '금', '토'];
+
+  function todayKST(now) {
+    return new Date((now == null ? Date.now() : now) + 9 * 3600000).toISOString().slice(0, 10);
+  }
+  function isYmd(s) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s || '')) return false;
+    const t = ymdToUTC(s);
+    return !isNaN(t) && new Date(t).toISOString().slice(0, 10) === s;
+  }
+  function ymdToUTC(ymd) {
+    const parts = String(ymd).split('-').map(Number);
+    return Date.UTC(parts[0], parts[1] - 1, parts[2]);
+  }
+  function addDays(ymd, n) {
+    return new Date(ymdToUTC(ymd) + n * DAY).toISOString().slice(0, 10);
+  }
+  function daysUntil(ymd, now) {
+    if (!ymd) return null;
+    return Math.round((ymdToUTC(ymd) - ymdToUTC(todayKST(now))) / DAY);
+  }
+  function ddayLabel(n) {
+    if (n == null) return '미정';
+    if (n === 0) return 'D-DAY';
+    return n > 0 ? 'D-' + n : '지남';
+  }
+  function dateLabel(ymd) {
+    if (!ymd) return '미정';
+    const t = new Date(ymdToUTC(ymd));
+    return (t.getUTCMonth() + 1) + '/' + t.getUTCDate() + '(' + WEEK[t.getUTCDay()] + ')';
+  }
+
+  /* 모집 상태 */
+  function statusOf(post, now) {
+    const n = daysUntil(post.interviewDate, now);
+    if (n != null && n < 0) return 'past';
+    if (post.closed) return 'closed';
+    if (post.members.length >= post.capacity) return 'full';
+    return 'open';
+  }
+
+  function memberOf(post, uid) {
+    return post.members.find(function (m) { return m.uid === uid; }) || null;
+  }
+  function applicationOf(post, uid) {
+    return (post.applicants || []).find(function (a) { return a.uid === uid; }) || null;
+  }
+
+  /* 개인정보: 전화번호·이메일은 받지 않는다 */
+  const PHONE = /01[016789][\s.\-]?\d{3,4}[\s.\-]?\d{4}/;
+  const EMAIL = /[\w.+\-]+@[\w\-]+\.[\w.]+/;
+  function privacyIssue(text) {
+    const s = String(text || '');
+    if (PHONE.test(s)) return '전화번호는 적지 말아 주세요.';
+    if (EMAIL.test(s)) return '이메일 주소는 적지 말아 주세요.';
+    return null;
+  }
+
+  function nickIssue(nick) {
+    const s = String(nick || '').trim();
+    if (s.length < 2 || s.length > 10) return '닉네임은 2~10자로 적어 주세요.';
+    return privacyIssue(s);
+  }
+
+  /* 직무 조건 검사: 같은 직무끼리 / 다른 직무끼리 / 무관 */
+  function ruleCheck(post, job) {
+    if (!String(job || '').trim()) return { ok: false, code: 'job', reason: '내 직무를 골라 주세요.' };
+    if (post.jobRule === 'same' && jobKey(job) !== jobKey(post.job)) {
+      return { ok: false, code: 'rule-same', reason: '이 모집은 ' + post.job + ' 직무만 신청할 수 있어요.' };
+    }
+    if (post.jobRule === 'diverse') {
+      const clash = post.members.some(function (m) { return jobKey(m.job) === jobKey(job); });
+      if (clash) {
+        return { ok: false, code: 'rule-diverse', reason: canonicalJob(job) + ' 직무는 이미 있어요. 이 모집은 참가자 직무가 모두 달라야 해요.' };
+      }
+    }
+    return { ok: true };
+  }
+
+  const CLOSED_REASON = { full: '정원이 다 찼어요.', closed: '방장이 모집을 마감했어요.', past: '면접일이 지난 모집이에요.' };
+
+  function checkApply(post, uid, form, now) {
+    if (post.hostId === uid) return { ok: false, code: 'host', reason: '내가 올린 모집이에요.' };
+    if (memberOf(post, uid)) return { ok: false, code: 'member', reason: '이미 참가 중이에요.' };
+    const ap = applicationOf(post, uid);
+    if (ap && ap.status === 'pending') return { ok: false, code: 'pending', reason: '방장 수락을 기다리고 있어요.' };
+    if (ap && ap.status === 'rejected') return { ok: false, code: 'rejected', reason: '이 모집에는 다시 신청할 수 없어요.' };
+    const st = statusOf(post, now);
+    if (st !== 'open') return { ok: false, code: st, reason: CLOSED_REASON[st] };
+    const rule = ruleCheck(post, form.job);
+    if (!rule.ok) return rule;
+    const n = nickIssue(form.nick);
+    if (n) return { ok: false, code: 'nick', reason: n };
+    if (String(form.intro || '').trim().length > 60) return { ok: false, code: 'intro', reason: '한 줄 소개는 60자 안으로 적어 주세요.' };
+    const p = privacyIssue(form.intro);
+    if (p) return { ok: false, code: 'intro', reason: p };
+    return { ok: true };
+  }
+
+  function checkAccept(post, applicant, now) {
+    if (statusOf(post, now) === 'past') return { ok: false, reason: '면접일이 지난 모집이에요.' };
+    if (post.members.length >= post.capacity) {
+      return { ok: false, reason: '정원이 다 찼어요. 참가자를 내보내야 수락할 수 있어요.' };
+    }
+    return ruleCheck(post, applicant.job);
+  }
+
+  function uniqueNick(post, nick) {
+    const used = new Set(post.members.map(function (m) { return m.nick; })
+      .concat((post.applicants || []).filter(function (a) { return a.status === 'pending'; }).map(function (a) { return a.nick; })));
+    if (!used.has(nick)) return nick;
+    for (let i = 2; i < 100; i++) {
+      if (!used.has(nick + i)) return nick + i;
+    }
+    return nick + String(Date.now()).slice(-3);
+  }
+
+  function validatePost(f, now) {
+    const e = {};
+    const company = String(f.company || '').trim();
+    if (!company) e.company = '회사 이름을 적어 주세요.';
+    else if (company.length > 30) e.company = '30자 안으로 적어 주세요.';
+
+    const job = String(f.job || '').trim();
+    if (!job) e.job = '직무를 골라 주세요.';
+    else if (job.length > 20) e.job = '20자 안으로 적어 주세요.';
+
+    if (STAGES.indexOf(f.stage) < 0) e.stage = '전형을 골라 주세요.';
+
+    if (f.interviewDate) {
+      if (!isYmd(f.interviewDate)) e.interviewDate = '날짜를 다시 골라 주세요.';
+      else if (daysUntil(f.interviewDate, now) < 0) e.interviewDate = '오늘이나 그 뒤 날짜를 골라 주세요.';
+      else if (daysUntil(f.interviewDate, now) > 120) e.interviewDate = '4개월 안의 날짜를 골라 주세요.';
+    }
+
+    if (f.mode !== 'online' && f.mode !== 'offline') e.mode = '진행 방식을 골라 주세요.';
+    if (f.mode === 'offline') {
+      const place = String(f.place || '').trim();
+      if (!place) e.place = '만날 곳을 적어 주세요. 예: 강남역 근처 스터디룸';
+      else if (place.length > 40) e.place = '40자 안으로 적어 주세요.';
+      else if (privacyIssue(place)) e.place = privacyIssue(place);
+    }
+
+    const cap = Number(f.capacity);
+    if (!Number.isInteger(cap) || cap < 2 || cap > 6) e.capacity = '정원은 2~6명이에요.';
+
+    if (!RULES[f.jobRule]) e.jobRule = '직무 조건을 골라 주세요.';
+    if (!JOIN[f.joinMode]) e.joinMode = '참가 방식을 골라 주세요.';
+
+    const intro = String(f.intro || '').trim();
+    if (intro.length > 300) e.intro = '300자 안으로 적어 주세요.';
+    else if (privacyIssue(intro)) e.intro = privacyIssue(intro);
+
+    const ni = nickIssue(f.nick);
+    if (ni) e.nick = ni;
+
+    return { ok: Object.keys(e).length === 0, errors: e };
+  }
+
+  /* 방 주소: 헷갈리는 글자(l, o, 0, 1)를 뺀 8자리 */
+  const ALPHA = 'abcdefghijkmnpqrstuvwxyz23456789';
+  function newId(len) {
+    len = len || 8;
+    const buf = new Uint8Array(len);
+    const c = root.crypto;
+    if (c && c.getRandomValues) c.getRandomValues(buf);
+    else for (let i = 0; i < len; i++) buf[i] = Math.floor(Math.random() * 256);
+    let out = '';
+    for (let i = 0; i < len; i++) out += ALPHA[buf[i] % ALPHA.length];
+    return out;
+  }
+
+  function postTitle(p) {
+    const stage = p.stage === '기타' ? '' : ' ' + p.stage;
+    return p.jobRule === 'diverse' ? p.company + stage + ' 면스' : p.company + ' ' + p.job + stage + ' 면스';
+  }
+
+  function shareText(p, url, now) {
+    const n = daysUntil(p.interviewDate, now);
+    const when = p.interviewDate ? '면접일 ' + dateLabel(p.interviewDate) + ' ' + ddayLabel(n) : '면접일 미정';
+    const where = p.mode === 'online' ? '온라인' : '오프라인 · ' + p.place;
+    return '[면스방] ' + postTitle(p) + ' 모집\n'
+      + RULES[p.jobRule].label + ' · ' + JOIN[p.joinMode].label + ' · ' + where + '\n'
+      + when + ' · 지금 ' + p.members.length + '/' + p.capacity + '명\n'
+      + '신청하기 → ' + url;
+  }
+
+  const Rules = {
+    JOBS: JOBS, STAGES: STAGES, COMPANIES: COMPANIES, RULES: RULES, JOIN: JOIN, STATUS: STATUS,
+    jobKey: jobKey, canonicalJob: canonicalJob,
+    todayKST: todayKST, addDays: addDays, daysUntil: daysUntil, ddayLabel: ddayLabel, dateLabel: dateLabel, isYmd: isYmd,
+    statusOf: statusOf, memberOf: memberOf, applicationOf: applicationOf,
+    privacyIssue: privacyIssue, nickIssue: nickIssue, ruleCheck: ruleCheck,
+    checkApply: checkApply, checkAccept: checkAccept, uniqueNick: uniqueNick, validatePost: validatePost,
+    newId: newId, postTitle: postTitle, shareText: shareText
+  };
+
+  root.Rules = Rules;
+  if (typeof module !== 'undefined' && module.exports) module.exports = Rules;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* 면스방 저장소 (실서비스): Firebase Firestore + 익명 로그인.
+   체험 저장소(store.js)와 함수 이름이 같아서 화면 코드는 그대로 쓴다.
+   글 한 건 = posts/{id} 문서 하나. 참가자·신청자는 uid를 키로 한 맵으로 저장한다. */
+(function (root) {
+  'use strict';
+  const R = root.Rules;
+  const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  const NICK_KEY = 'myeonsbang-nick';
+  const JOB_KEY = 'myeonsbang-job';
+  const listeners = new Set();
+  const cache = new Map();
+  const docState = new Map();
+  let fs = null;
+  let db = null;
+  let uid = null;
+
+  function lsGet(k) { try { return root.localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function lsSet(k, v) { try { root.localStorage.setItem(k, v); } catch (e) { /* 무시 */ } }
+  function emit() { listeners.forEach(function (fn) { try { fn(); } catch (e) { console.error(e); } }); }
+
+  function toList(map) {
+    return Object.keys(map || {}).map(function (k) { return Object.assign({ uid: k }, map[k]); });
+  }
+  function fromDoc(snap) {
+    const d = snap.data();
+    if (!d) return null;
+    const members = toList(d.members).sort(function (a, b) {
+      if (a.role === 'host') return -1;
+      if (b.role === 'host') return 1;
+      return (a.at || 0) - (b.at || 0);
+    });
+    const applicants = toList(d.applicants).sort(function (a, b) { return (a.at || 0) - (b.at || 0); });
+    return {
+      id: snap.id, company: d.company, job: d.job, jobKey: d.jobKey, stage: d.stage,
+      interviewDate: d.interviewDate || null, mode: d.mode, place: d.place || '', capacity: d.capacity,
+      jobRule: d.jobRule, joinMode: d.joinMode, intro: d.intro || '', hostId: d.hostId, closed: !!d.closed,
+      createdAt: d.createdAt || 0, members: members, applicants: applicants
+    };
+  }
+
+  function failReason(err) {
+    const code = (err && err.code) || '';
+    if (code === 'permission-denied') return '처리하지 못했어요. 그사이 모집 상태가 바뀌었을 수 있어요. 새로고침 후 다시 해 보세요.';
+    if (code === 'unavailable' || code === 'deadline-exceeded') return '인터넷 연결이 불안정해요. 잠시 뒤 다시 해 보세요.';
+    return '처리하지 못했어요. 잠시 뒤 다시 해 보세요.';
+  }
+  function ref(id) { return fs.doc(db, 'posts', id); }
+  function write(id, data) {
+    return fs.updateDoc(ref(id), data).then(function () { return { ok: true }; }, function (err) {
+      console.error('[면스방] 저장 실패', err);
+      return { ok: false, reason: failReason(err) };
+    });
+  }
+  function asHost(id) {
+    const p = cache.get(id);
+    if (!p) return '글을 찾을 수 없어요.';
+    if (p.hostId !== uid) return '방장만 할 수 있어요.';
+    return null;
+  }
+  function entry(nick, job, intro, at) {
+    const j = R.canonicalJob(job);
+    return { nick: nick, job: j, jobKey: R.jobKey(j), intro: String(intro || '').trim().slice(0, 60), at: at };
+  }
+
+  function withTimeout(promise, ms) {
+    return new Promise(function (resolve, reject) {
+      const t = setTimeout(function () { reject(new Error('timeout')); }, ms);
+      promise.then(function (v) { clearTimeout(t); resolve(v); }, function (e) { clearTimeout(t); reject(e); });
+    });
+  }
+
+  async function start() {
+    const cfg = root.MYEONSBANG_FIREBASE;
+    if (!cfg || !cfg.apiKey) throw new Error('no-config');
+    const mods = await Promise.all([
+      import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')
+    ]);
+    const appMod = mods[0], authMod = mods[1];
+    fs = mods[2];
+    const app = appMod.initializeApp(cfg);
+    const auth = authMod.getAuth(app);
+    try { db = fs.initializeFirestore(app, { experimentalAutoDetectLongPolling: true }); } catch (e) { db = fs.getFirestore(app); }
+    await auth.authStateReady();
+    if (!auth.currentUser) await authMod.signInAnonymously(auth);
+    uid = auth.currentUser.uid;
+
+    await new Promise(function (resolve, reject) {
+      let first = true;
+      const q = fs.query(fs.collection(db, 'posts'), fs.orderBy('createdAt', 'desc'), fs.limit(200));
+      fs.onSnapshot(q, function (snap) {
+        snap.docChanges().forEach(function (ch) {
+          if (ch.type === 'removed') { if (docState.get(ch.doc.id) !== 'watch') cache.delete(ch.doc.id); }
+          else { const p = fromDoc(ch.doc); if (p) cache.set(p.id, p); }
+        });
+        if (first) { first = false; resolve(); }
+        emit();
+      }, function (err) {
+        console.error('[면스방] 목록 오류', err);
+        if (first) { first = false; reject(err); }
+      });
+    });
+  }
+
+  const Store = {
+    kind: 'live',
+
+    init: function () { return withTimeout(start(), 20000); },
+    subscribe: function (fn) { listeners.add(fn); return function () { listeners.delete(fn); }; },
+
+    me: function () { return { uid: uid, nick: lsGet(NICK_KEY), job: lsGet(JOB_KEY) }; },
+    users: function () { return []; },
+    switchUser: function () { /* 실서비스에는 없음 */ },
+    resetDemo: function () { /* 실서비스에는 없음 */ },
+
+    posts: function () { return Array.from(cache.values()); },
+    post: function (id) { return cache.get(id) || null; },
+
+    /* 목록(최근 200개)에 없는 글을 링크로 열었을 때 따로 불러온다: 'found' | 'loading' | 'missing' */
+    watch: function (id) {
+      if (cache.has(id)) return 'found';
+      const st = docState.get(id);
+      if (st === 'loading' || st === 'missing') return st;
+      docState.set(id, 'loading');
+      fs.onSnapshot(ref(id), function (ds) {
+        if (ds.exists()) { cache.set(id, fromDoc(ds)); docState.set(id, 'watch'); }
+        else { cache.delete(id); docState.set(id, 'missing'); }
+        emit();
+      }, function () { docState.set(id, 'missing'); emit(); });
+      return 'loading';
+    },
+
+    createPost: async function (f) {
+      const now = Date.now();
+      const v = R.validatePost(f, now);
+      if (!v.ok) return { ok: false, errors: v.errors };
+      const nick = String(f.nick).trim();
+      const host = entry(nick, f.job, '', now);
+      host.role = 'host';
+      const data = {
+        company: String(f.company).trim(), job: host.job, jobKey: host.jobKey, stage: f.stage,
+        interviewDate: f.interviewDate || null, mode: f.mode, place: f.mode === 'offline' ? String(f.place).trim() : '',
+        capacity: Number(f.capacity), jobRule: f.jobRule, joinMode: f.joinMode, intro: String(f.intro || '').trim(),
+        hostId: uid, closed: false, createdAt: now, members: {}, applicants: {}
+      };
+      data.members[uid] = host;
+      let lastErr = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const id = R.newId(8);
+        try {
+          await fs.setDoc(ref(id), data);
+          lsSet(NICK_KEY, nick);
+          lsSet(JOB_KEY, host.job);
+          const post = Object.assign({ id: id }, data, { members: [Object.assign({ uid: uid }, host)], applicants: [] });
+          if (!cache.has(id)) cache.set(id, post);
+          emit();
+          return { ok: true, post: cache.get(id) };
+        } catch (err) {
+          lastErr = err;
+          console.error('[면스방] 글 저장 실패', err);
+          if (!err || err.code !== 'permission-denied') break;
+        }
+      }
+      return { ok: false, reason: failReason(lastErr) };
+    },
+
+    apply: async function (id, f) {
+      const p = cache.get(id);
+      if (!p) return { ok: false, reason: '글을 찾을 수 없어요.' };
+      const chk = R.checkApply(p, uid, f, Date.now());
+      if (!chk.ok) return chk;
+      const nick = String(f.nick).trim();
+      const e = entry(R.uniqueNick(p, nick), f.job, f.intro, Date.now());
+      const data = {};
+      if (p.joinMode === 'instant') { e.role = 'member'; data['members.' + uid] = e; }
+      else { e.status = 'pending'; data['applicants.' + uid] = e; }
+      const r = await write(id, data);
+      if (!r.ok) {
+        const latest = cache.get(id);
+        const again = latest ? R.checkApply(latest, uid, f, Date.now()) : { ok: false, reason: '글을 찾을 수 없어요.' };
+        return again.ok ? r : again;
+      }
+      lsSet(NICK_KEY, nick);
+      lsSet(JOB_KEY, e.job);
+      return { ok: true, joined: p.joinMode === 'instant' };
+    },
+
+    cancel: function (id) {
+      const data = {};
+      data['applicants.' + uid] = fs.deleteField();
+      return write(id, data);
+    },
+
+    leave: function (id) {
+      const p = cache.get(id);
+      if (p && p.hostId === uid) return Promise.resolve({ ok: false, reason: '방장은 나갈 수 없어요. 글을 지워 주세요.' });
+      const data = {};
+      data['members.' + uid] = fs.deleteField();
+      return write(id, data);
+    },
+
+    decide: function (id, who, accept) {
+      const err = asHost(id);
+      if (err) return Promise.resolve({ ok: false, reason: err });
+      const p = cache.get(id);
+      const ap = p.applicants.find(function (a) { return a.uid === who && a.status === 'pending'; });
+      if (!ap) return Promise.resolve({ ok: false, reason: '이미 처리된 신청이에요.' });
+      const data = {};
+      if (accept) {
+        const chk = R.checkAccept(p, ap, Date.now());
+        if (!chk.ok) return Promise.resolve(chk);
+        const m = entry(ap.nick, ap.job, ap.intro, Date.now());
+        m.role = 'member';
+        data['applicants.' + who] = fs.deleteField();
+        data['members.' + who] = m;
+      } else {
+        data['applicants.' + who + '.status'] = 'rejected';
+      }
+      return write(id, data);
+    },
+
+    kick: function (id, who) {
+      const err = asHost(id);
+      if (err) return Promise.resolve({ ok: false, reason: err });
+      const p = cache.get(id);
+      const m = p.members.find(function (x) { return x.uid === who && x.role !== 'host'; });
+      if (!m) return Promise.resolve({ ok: false, reason: '참가자를 찾을 수 없어요.' });
+      const gone = entry(m.nick, m.job, m.intro, Date.now());
+      gone.status = 'rejected';
+      const data = {};
+      data['members.' + who] = fs.deleteField();
+      data['applicants.' + who] = gone;
+      return write(id, data);
+    },
+
+    setClosed: function (id, closed) {
+      const err = asHost(id);
+      if (err) return Promise.resolve({ ok: false, reason: err });
+      return write(id, { closed: !!closed });
+    },
+
+    remove: function (id) {
+      const err = asHost(id);
+      if (err) return Promise.resolve({ ok: false, reason: err });
+      return fs.deleteDoc(ref(id)).then(function () {
+        cache.delete(id);
+        emit();
+        return { ok: true };
+      }, function (e) {
+        console.error('[면스방] 삭제 실패', e);
+        return { ok: false, reason: failReason(e) };
+      });
+    }
+  };
+
+  root.Store = Store;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* 면스방 화면 */
+(function () {
+  'use strict';
+  const R = window.Rules;
+  const S = window.Store;
+  const $ = function (sel, el) { return (el || document).querySelector(sel); };
+  const $$ = function (sel, el) { return Array.prototype.slice.call((el || document).querySelectorAll(sel)); };
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  const view = $('#view');
+  const ui = {
+    route: 'board', postId: null, openShareFor: null, confirm: null,
+    filters: { q: '', rule: 'all', openOnly: true, mode: 'all', sort: 'new' }
+  };
+  try {
+    const saved = JSON.parse(localStorage.getItem('myeonsbang-filters') || 'null');
+    if (saved && typeof saved === 'object') Object.assign(ui.filters, saved);
+  } catch (e) { /* 저장된 필터 없음 */ }
+  function saveFilters() {
+    try { localStorage.setItem('myeonsbang-filters', JSON.stringify(ui.filters)); } catch (e) { /* 무시 */ }
+  }
+
+  /* ---------- 공통 도우미 ---------- */
+  function ago(ts, now) {
+    const d = Math.max(0, now - ts);
+    const m = Math.floor(d / 60000);
+    if (m < 1) return '방금';
+    if (m < 60) return m + '분 전';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + '시간 전';
+    const days = Math.floor(h / 24);
+    if (days < 7) return days + '일 전';
+    const t = new Date(ts + 9 * 3600000);
+    return (t.getUTCMonth() + 1) + '/' + t.getUTCDate();
+  }
+
+  let toastTimer = null;
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('on'); }, 2800);
+  }
+
+  function hostOf(p) { return p.members.find(function (m) { return m.role === 'host'; }) || null; }
+  function userLabel(u) {
+    if (u.uid === 'u-me') return '나' + (u.nick ? ' (' + u.nick + ')' : '');
+    return u.nick + ' · ' + u.job;
+  }
+
+  function jobSelect(id, current) {
+    const preset = R.JOBS.indexOf(current) >= 0;
+    const custom = current && !preset;
+    return '<div class="job-pick"><select id="' + id + '" data-job-select>'
+      + '<option value="">직무 고르기</option>'
+      + R.JOBS.map(function (j) { return '<option' + (j === current ? ' selected' : '') + '>' + esc(j) + '</option>'; }).join('')
+      + '<option value="__custom"' + (custom ? ' selected' : '') + '>직접 입력</option></select>'
+      + '<label class="sr" for="' + id + '-custom">직무 직접 입력</label>'
+      + '<input id="' + id + '-custom" class="job-custom" maxlength="20" placeholder="직무 이름" autocomplete="off" value="' + (custom ? esc(current) : '') + '"' + (custom ? '' : ' hidden') + '></div>';
+  }
+  function readJob(id) {
+    const sel = $('#' + id);
+    if (!sel) return '';
+    if (sel.value === '__custom') return ($('#' + id + '-custom').value || '').trim();
+    return sel.value;
+  }
+
+  /* ---------- 체험 모드 띠 ---------- */
+  function renderDemoBar() {
+    const bar = $('#demo');
+    if (S.kind !== 'demo') { bar.hidden = true; return; }
+    const cur = S.me();
+    const opts = S.users().map(function (u) {
+      return '<option value="' + esc(u.uid) + '"' + (u.uid === cur.uid ? ' selected' : '') + '>' + esc(userLabel(u)) + '</option>';
+    }).join('');
+    bar.innerHTML = '<div class="demo-in"><span class="demo-tag">체험 모드</span>'
+      + '<span class="demo-text">이 브라우저에만 저장돼요. 사용자를 바꿔 가며 신청과 수락을 해 보세요.</span>'
+      + '<span class="demo-pick"><label for="demo-user">지금 사용자</label><select id="demo-user">' + opts + '</select></span>'
+      + '<button type="button" class="link" data-action="reset-demo">예시 다시 채우기</button></div>';
+    bar.hidden = false;
+  }
+
+  /* ---------- 대기표(카드) ---------- */
+  function ticketTitle(p) {
+    if (p.jobRule === 'diverse') return '직무 모두 다르게 · ' + p.stage;
+    if (p.jobRule === 'any') return '직무 무관 · ' + p.stage;
+    return p.job + ' · ' + p.stage;
+  }
+  function ticket(p, extra) {
+    const now = Date.now();
+    const st = R.statusOf(p, now);
+    const n = R.daysUntil(p.interviewDate, now);
+    const urgent = n != null && n >= 0 && n <= 3 && st !== 'past';
+    const host = hostOf(p);
+    let seats = '';
+    for (let i = 0; i < p.capacity; i++) seats += '<i class="' + (i < p.members.length ? 'on' : '') + '"></i>';
+    const jobs = p.jobRule === 'same' ? '' : '<p class="tk-jobs">지금 있는 직무: ' + esc(p.members.map(function (m) { return m.job; }).join(', ')) + '</p>';
+    return '<li><a class="ticket st-' + st + (urgent ? ' urgent' : '') + '" href="#post-' + esc(p.id) + '">'
+      + '<div class="stub"><span class="dd">' + esc(R.ddayLabel(n)) + '</span><span class="dd-date">' + (p.interviewDate ? esc(R.dateLabel(p.interviewDate)) : '면접일') + '</span></div>'
+      + '<div class="tk-body">'
+      + '<div class="tk-top"><span class="company">' + esc(p.company) + '</span><span class="pill st-' + st + '">' + R.STATUS[st] + '</span></div>'
+      + '<p class="tk-title">' + esc(ticketTitle(p)) + '</p>' + jobs
+      + '<div class="chips"><span class="chip rule-' + p.jobRule + '">' + R.RULES[p.jobRule].label + '</span>'
+      + '<span class="chip">' + (p.mode === 'online' ? '온라인' : '오프라인') + '</span>'
+      + '<span class="chip">' + R.JOIN[p.joinMode].label + '</span>'
+      + (p.seed ? '<span class="chip ex">예시</span>' : '') + (extra || '') + '</div>'
+      + '<div class="tk-foot"><span class="seats" aria-hidden="true">' + seats + '</span>'
+      + '<span class="num">' + p.members.length + '/' + p.capacity + '명</span>'
+      + '<span class="by">' + esc(host ? host.nick : '') + ' · ' + esc(ago(p.createdAt, now)) + '</span></div>'
+      + '</div></a></li>';
+  }
+
+  /* ---------- 게시판 ---------- */
+  function renderBoard() {
+    const f = ui.filters;
+    const segs = [['all', '전체'], ['same', '같은 직무끼리'], ['diverse', '다른 직무끼리'], ['any', '직무 무관']];
+    view.innerHTML = '<section class="hero"><h1>서류 합격했다면, 면스부터</h1>'
+      + '<p>같은 회사 면접을 앞둔 사람끼리 모여 연습해요. 같은 직무끼리 모을지, 다른 직무끼리 모을지 정해서 올리고, 조건이 맞는 글에 바로 신청하세요.</p></section>'
+      + '<section class="filters" aria-label="모집 글 찾기">'
+      + '<div class="search"><label class="sr" for="f-q">회사나 직무로 찾기</label>'
+      + '<input id="f-q" type="search" autocomplete="off" placeholder="회사나 직무로 찾기 (예: 기아, 품질)" value="' + esc(f.q) + '"></div>'
+      + '<div class="seg" role="group" aria-label="직무 조건">'
+      + segs.map(function (s) {
+        return '<button type="button" class="seg-btn' + (f.rule === s[0] ? ' on' : '') + '" data-action="filter-rule" data-value="' + s[0] + '" aria-pressed="' + (f.rule === s[0]) + '">' + s[1] + '</button>';
+      }).join('') + '</div>'
+      + '<div class="filter-row">'
+      + '<label class="check" for="f-open"><input id="f-open" type="checkbox"' + (f.openOnly ? ' checked' : '') + '> 모집 중만</label>'
+      + '<label class="sr" for="f-mode">진행 방식</label><select id="f-mode"><option value="all">온라인·오프라인</option><option value="online">온라인만</option><option value="offline">오프라인만</option></select>'
+      + '<label class="sr" for="f-sort">정렬</label><select id="f-sort"><option value="new">최신순</option><option value="soon">면접일 가까운 순</option></select>'
+      + '</div></section><div id="list"></div>';
+    $('#f-mode').value = f.mode;
+    $('#f-sort').value = f.sort;
+    renderList();
+  }
+
+  function filteredPosts() {
+    const f = ui.filters;
+    const now = Date.now();
+    const words = f.q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const list = S.posts().filter(function (p) {
+      if (f.rule !== 'all' && p.jobRule !== f.rule) return false;
+      if (f.mode !== 'all' && p.mode !== f.mode) return false;
+      if (f.openOnly && R.statusOf(p, now) !== 'open') return false;
+      if (words.length) {
+        const hay = [p.company, p.job, p.stage].concat(p.members.map(function (m) { return m.job; })).join(' ').toLowerCase();
+        if (!words.every(function (w) { return hay.indexOf(w) >= 0; })) return false;
+      }
+      return true;
+    });
+    if (f.sort === 'soon') {
+      const key = function (p) { const n = R.daysUntil(p.interviewDate, now); return n == null ? 9999 : n; };
+      list.sort(function (a, b) { return key(a) - key(b) || b.createdAt - a.createdAt; });
+    } else {
+      list.sort(function (a, b) { return b.createdAt - a.createdAt; });
+    }
+    return list;
+  }
+
+  function renderList() {
+    const el = $('#list');
+    if (!el) return;
+    const list = filteredPosts();
+    const total = S.posts().length;
+    if (!list.length) {
+      el.innerHTML = '<div class="empty"><p class="empty-t">' + (total ? '조건에 맞는 모집 글이 없어요.' : '아직 모집 글이 없어요.') + '</p>'
+        + '<p>' + (total ? '필터를 풀어 보거나, 원하는 조건으로 직접 모집해 보세요.' : '첫 모집 글을 올려 보세요.') + '</p>'
+        + '<a class="btn btn-primary" href="#new">모집 글 쓰기</a></div>';
+      return;
+    }
+    el.innerHTML = '<p class="count">모집 글 <b>' + list.length + '</b>개</p><ol class="tickets">' + list.map(function (p) { return ticket(p); }).join('') + '</ol>';
+  }
+
+  /* ---------- 모집 글 쓰기 ---------- */
+  function radioPill(name, value, label, idx, checked) {
+    const id = 'r-' + name + '-' + idx;
+    return '<label class="pill-radio" for="' + id + '"><input id="' + id + '" type="radio" name="' + name + '" value="' + esc(value) + '"' + (checked ? ' checked' : '') + '><span>' + esc(label) + '</span></label>';
+  }
+  function ruleCard(key, checked) {
+    const r = R.RULES[key];
+    return '<label class="card-radio rule-' + key + '" for="r-rule-' + key + '"><input id="r-rule-' + key + '" type="radio" name="jobRule" value="' + key + '"' + (checked ? ' checked' : '') + '>'
+      + '<span class="cr-t">' + r.label + '</span><span class="cr-d">' + r.desc + '</span></label>';
+  }
+  function joinCard(key, checked) {
+    const j = R.JOIN[key];
+    return '<label class="card-radio" for="r-join-' + key + '"><input id="r-join-' + key + '" type="radio" name="joinMode" value="' + key + '"' + (checked ? ' checked' : '') + '>'
+      + '<span class="cr-t">' + j.label + '</span><span class="cr-d">' + j.desc + '</span></label>';
+  }
+
+  function renderNew() {
+    const u = S.me();
+    const today = R.todayKST();
+    view.innerHTML = '<a class="back" href="#board">← 모집 글</a>'
+      + '<form id="new-form" class="form" novalidate>'
+      + '<h1>면스 모집 글 쓰기</h1>'
+      + '<p class="lead">회사와 직무, 모집 조건만 정하면 돼요. 올리면 단톡방에 붙일 문구를 바로 만들어 드려요.</p>'
+
+      + '<fieldset class="group"><legend>면접 정보</legend>'
+      + '<div class="field"><label for="n-company">회사</label><input id="n-company" list="companies" maxlength="30" placeholder="예: 기아" autocomplete="off">'
+      + '<datalist id="companies">' + R.COMPANIES.map(function (c) { return '<option value="' + esc(c) + '"></option>'; }).join('') + '</datalist>'
+      + '<p class="err" data-err="company"></p></div>'
+      + '<div class="field"><label for="n-job">내 직무</label>' + jobSelect('n-job', u.job)
+      + '<p class="hint">같은 직무끼리 모집하면 이 직무인 사람만 신청할 수 있어요.</p><p class="err" data-err="job"></p></div>'
+      + '<div class="field"><span class="label" id="l-stage">전형</span><div class="seg" role="radiogroup" aria-labelledby="l-stage">'
+      + R.STAGES.map(function (s, i) { return radioPill('stage', s, s, i, i === 0); }).join('') + '</div><p class="err" data-err="stage"></p></div>'
+      + '<div class="field"><label for="n-date">면접일</label><div class="inline"><input id="n-date" type="date" min="' + today + '">'
+      + '<label class="check" for="n-date-unknown"><input id="n-date-unknown" type="checkbox"> 아직 몰라요</label></div>'
+      + '<p class="err" data-err="interviewDate"></p></div>'
+      + '</fieldset>'
+
+      + '<fieldset class="group"><legend>모집 조건</legend>'
+      + '<div class="field"><span class="label" id="l-rule">누구와 할까요</span><div class="cards three" role="radiogroup" aria-labelledby="l-rule">'
+      + ruleCard('same', true) + ruleCard('diverse', false) + ruleCard('any', false) + '</div><p class="err" data-err="jobRule"></p></div>'
+      + '<div class="field"><span class="label" id="l-join">참가 방식</span><div class="cards" role="radiogroup" aria-labelledby="l-join">'
+      + joinCard('instant', true) + joinCard('approve', false) + '</div><p class="err" data-err="joinMode"></p></div>'
+      + '<div class="field"><span class="label" id="l-cap">정원 (나 포함)</span><div class="stepper" role="group" aria-labelledby="l-cap">'
+      + '<button type="button" data-action="cap-minus" aria-label="정원 한 명 줄이기">−</button><output id="n-cap" aria-live="polite">4</output>'
+      + '<button type="button" data-action="cap-plus" aria-label="정원 한 명 늘리기">+</button><span class="unit">명 (2~6명)</span></div>'
+      + '<p class="err" data-err="capacity"></p></div>'
+      + '<div class="field"><span class="label" id="l-mode">진행 방식</span><div class="seg" role="radiogroup" aria-labelledby="l-mode">'
+      + radioPill('mode', 'online', '온라인', 0, true) + radioPill('mode', 'offline', '오프라인', 1, false) + '</div>'
+      + '<div class="field sub" id="place-field" hidden><label for="n-place">만날 곳</label><input id="n-place" maxlength="40" placeholder="예: 강남역 근처 스터디룸" autocomplete="off"><p class="err" data-err="place"></p></div>'
+      + '<p class="err" data-err="mode"></p></div>'
+      + '</fieldset>'
+
+      + '<fieldset class="group"><legend>소개</legend>'
+      + '<div class="field"><label for="n-intro">하고 싶은 말 <span class="opt">(선택)</span></label>'
+      + '<textarea id="n-intro" rows="4" maxlength="300" placeholder="예: 직무 질문 위주로 평일 저녁에 연습해요. 화상은 구글 미트로 해요."></textarea>'
+      + '<div class="meta-row"><p class="hint">실명·연락처·학교명은 적지 마세요.</p><span class="counter" id="n-intro-count">0/300</span></div>'
+      + '<p class="err" data-err="intro"></p></div>'
+      + '<div class="field"><label for="n-nick">내 닉네임</label><input id="n-nick" maxlength="10" placeholder="2~10자" value="' + esc(u.nick || '') + '" autocomplete="off">'
+      + '<p class="err" data-err="nick"></p></div>'
+      + '</fieldset>'
+
+      + '<div class="submit-bar"><button class="btn btn-primary btn-wide" type="submit">모집 글 올리기</button></div>'
+      + '</form>';
+  }
+
+  function showErrors(form, errors) {
+    $$('[data-err]', form).forEach(function (el) { el.textContent = errors[el.dataset.err] || ''; });
+    const order = ['company', 'job', 'stage', 'interviewDate', 'jobRule', 'joinMode', 'capacity', 'mode', 'place', 'intro', 'nick'];
+    const first = order.find(function (k) { return errors[k]; });
+    if (first) {
+      const el = $('[data-err="' + first + '"]', form);
+      const field = el && el.closest('.field');
+      if (field) field.scrollIntoView({ block: 'center' });
+    }
+  }
+
+  function submitNew(form) {
+    const checked = function (name) { const el = $('input[name="' + name + '"]:checked', form); return el ? el.value : ''; };
+    const unknown = $('#n-date-unknown').checked;
+    const f = {
+      company: $('#n-company').value, job: readJob('n-job'), stage: checked('stage'),
+      interviewDate: unknown ? null : ($('#n-date').value || null),
+      mode: checked('mode'), place: $('#n-place').value, capacity: Number($('#n-cap').textContent),
+      jobRule: checked('jobRule'), joinMode: checked('joinMode'),
+      intro: $('#n-intro').value, nick: $('#n-nick').value
+    };
+    const errors = R.validatePost(f, Date.now()).errors;
+    if (!unknown && !f.interviewDate) errors.interviewDate = '면접일을 고르거나 "아직 몰라요"를 눌러 주세요.';
+    if (Object.keys(errors).length) { showErrors(form, errors); return; }
+    const btn = $('button[type="submit"]', form);
+    btn.disabled = true;
+    btn.textContent = '올리는 중…';
+    S.createPost(f).then(function (res) {
+      btn.disabled = false;
+      btn.textContent = '모집 글 올리기';
+      if (!res.ok) {
+        if (res.errors) showErrors(form, res.errors);
+        if (res.reason) toast(res.reason);
+        return;
+      }
+      ui.openShareFor = res.post.id;
+      go('post-' + res.post.id);
+    });
+  }
+
+  /* ---------- 글 상세 ---------- */
+  function ruleBox(p) {
+    if (p.jobRule === 'same') {
+      return '<div class="rulebox rule-same"><b>같은 직무끼리</b>' + esc(p.job) + ' 직무만 신청할 수 있어요.</div>';
+    }
+    if (p.jobRule === 'diverse') {
+      return '<div class="rulebox rule-diverse"><b>다른 직무끼리</b>참가자 직무가 모두 달라야 해요. 지금 있는 직무('
+        + esc(p.members.map(function (m) { return m.job; }).join(', ')) + ')로는 신청할 수 없어요.</div>';
+    }
+    return '<div class="rulebox rule-any"><b>직무 무관</b>직무와 상관없이 신청할 수 있어요.</div>';
+  }
+
+  function nameTag(m, extra) {
+    return '<li class="tag"><span class="tag-nick">' + esc(m.nick) + '</span><span class="tag-job">' + esc(m.job) + '</span>'
+      + (m.role === 'host' ? '<span class="tag-host">방장</span>' : '')
+      + (m.intro ? '<span class="tag-intro">' + esc(m.intro) + '</span>' : '') + (extra || '') + '</li>';
+  }
+
+  function hostPanel(p, now) {
+    const pending = p.applicants.filter(function (a) { return a.status === 'pending'; });
+    let inbox;
+    if (p.joinMode !== 'approve') {
+      inbox = '<p class="muted">바로 참가 방식이라, 조건이 맞는 사람은 신청과 동시에 참가해요.</p>';
+    } else if (!pending.length) {
+      inbox = '<h3>수락 기다리는 신청 <span class="num">0</span></h3><p class="muted">아직 들어온 신청이 없어요. 공유 문구를 단톡방에 올려 보세요.</p>';
+    } else {
+      inbox = '<h3>수락 기다리는 신청 <span class="num">' + pending.length + '</span></h3><ul class="appls">'
+        + pending.map(function (a) {
+          const chk = R.checkAccept(p, a, now);
+          return '<li class="appl"><div class="appl-who"><span class="tag-nick">' + esc(a.nick) + '</span><span class="tag-job">' + esc(a.job) + '</span>'
+            + '<span class="appl-when">' + esc(ago(a.at, now)) + '</span></div>'
+            + (a.intro ? '<p class="appl-intro">' + esc(a.intro) + '</p>' : '')
+            + (chk.ok ? '' : '<p class="warn">' + esc(chk.reason) + '</p>')
+            + '<div class="appl-act"><button type="button" class="btn btn-small" data-action="reject" data-uid="' + esc(a.uid) + '">거절</button>'
+            + '<button type="button" class="btn btn-small btn-primary" data-action="accept" data-uid="' + esc(a.uid) + '"' + (chk.ok ? '' : ' disabled') + '>수락</button></div></li>';
+        }).join('') + '</ul>';
+    }
+    return '<section class="d-sec host-panel"><h2>방장 관리</h2>' + inbox
+      + '<div class="host-act"><button type="button" class="btn" data-action="toggle-close">' + (p.closed ? '모집 다시 열기' : '모집 마감하기') + '</button>'
+      + '<button type="button" class="btn danger-outline" data-action="delete-post">글 지우기</button></div></section>';
+  }
+
+  function renderDetail() {
+    const p = S.post(ui.postId);
+    if (!p && S.watch && S.watch(ui.postId) === 'loading') {
+      view.innerHTML = '<a class="back" href="#board">← 모집 글</a><p class="loading">글을 불러오는 중이에요…</p>';
+      renderActionBar(null);
+      return;
+    }
+    if (!p) {
+      view.innerHTML = '<a class="back" href="#board">← 모집 글</a><div class="empty"><p class="empty-t">글을 찾을 수 없어요.</p>'
+        + '<p>방장이 지웠거나 주소가 잘못됐어요.</p><a class="btn" href="#board">모집 글 보러 가기</a></div>';
+      renderActionBar(null);
+      return;
+    }
+    const now = Date.now();
+    const u = S.me();
+    const st = R.statusOf(p, now);
+    const n = R.daysUntil(p.interviewDate, now);
+    const isHost = p.hostId === u.uid;
+    const host = hostOf(p);
+    const urgent = n != null && n >= 0 && n <= 3 && st !== 'past';
+    const empty = Math.max(0, p.capacity - p.members.length);
+    let seats = '';
+    for (let i = 0; i < empty; i++) seats += '<li class="tag empty-seat">빈자리</li>';
+
+    view.innerHTML = '<a class="back" href="#board">← 모집 글</a>'
+      + '<article class="detail st-' + st + '">'
+      + '<header class="d-head"><div class="d-stub' + (urgent ? ' urgent' : '') + '"><span class="dd">' + esc(R.ddayLabel(n)) + '</span>'
+      + '<span class="dd-date">' + (p.interviewDate ? esc(R.dateLabel(p.interviewDate)) + ' 면접' : '면접일 미정') + '</span></div>'
+      + '<div class="d-titles"><p class="company">' + esc(p.company) + ' 면접 스터디</p><h1>' + esc(ticketTitle(p)) + '</h1>'
+      + '<div class="chips"><span class="pill st-' + st + '">' + R.STATUS[st] + '</span><span class="chip rule-' + p.jobRule + '">' + R.RULES[p.jobRule].label + '</span>'
+      + '<span class="chip">' + R.JOIN[p.joinMode].label + '</span>' + (p.seed ? '<span class="chip ex">예시</span>' : '') + '</div></div></header>'
+      + '<dl class="facts">'
+      + '<div><dt>전형</dt><dd>' + esc(p.stage) + '</dd></div>'
+      + '<div><dt>진행</dt><dd>' + (p.mode === 'online' ? '온라인' : '오프라인 · ' + esc(p.place)) + '</dd></div>'
+      + '<div><dt>인원</dt><dd>' + p.members.length + '/' + p.capacity + '명</dd></div>'
+      + '<div><dt>방장</dt><dd>' + esc(host ? host.nick + ' · ' + host.job : p.job) + '</dd></div>'
+      + '<div><dt>올린 때</dt><dd>' + esc(ago(p.createdAt, now)) + '</dd></div>'
+      + '</dl>'
+      + ruleBox(p)
+      + (p.intro ? '<section class="d-sec"><h2>방장 한마디</h2><p class="intro">' + esc(p.intro) + '</p></section>' : '')
+      + '<section class="d-sec"><h2>참가자 <span class="num">' + p.members.length + '/' + p.capacity + '</span></h2><ul class="tags">'
+      + p.members.map(function (m) {
+        return nameTag(m, isHost && m.role !== 'host' ? '<button type="button" class="link danger" data-action="kick" data-uid="' + esc(m.uid) + '">내보내기</button>' : '');
+      }).join('') + seats + '</ul></section>'
+      + (isHost ? hostPanel(p, now) : '')
+      + '</article>';
+    renderActionBar(p);
+    if (ui.openShareFor === p.id) { ui.openShareFor = null; openShare(p, true); }
+  }
+
+  function renderActionBar(p) {
+    const bar = $('#actionbar');
+    if (!p || ui.route !== 'post') {
+      bar.hidden = true; bar.innerHTML = ''; document.body.classList.remove('has-bar');
+      return;
+    }
+    const u = S.me();
+    const st = R.statusOf(p, Date.now());
+    const mine = R.memberOf(p, u.uid);
+    const ap = R.applicationOf(p, u.uid);
+    const share = '<button type="button" class="btn" data-action="share">공유 문구</button>';
+    let left, right;
+    if (p.hostId === u.uid) {
+      left = '<span class="bar-note">내가 올린 모집이에요</span>'; right = share;
+    } else if (mine) {
+      left = '<span class="bar-note ok">참가 중이에요</span>'; right = '<button type="button" class="btn" data-action="leave">나가기</button>' + share;
+    } else if (ap && ap.status === 'pending') {
+      left = '<span class="bar-note wait">방장 수락을 기다리는 중</span>'; right = '<button type="button" class="btn" data-action="cancel">신청 취소</button>';
+    } else if (ap && ap.status === 'rejected') {
+      left = '<span class="bar-note">이번 모집에는 함께하지 못하게 됐어요</span>'; right = '<a class="btn" href="#board">다른 글 보기</a>';
+    } else if (st !== 'open') {
+      left = share; right = '<button type="button" class="btn btn-primary" disabled>' + R.STATUS[st] + '</button>';
+    } else {
+      left = share; right = '<button type="button" class="btn btn-primary" data-action="open-apply">' + (p.joinMode === 'instant' ? '참가하기' : '신청하기') + '</button>';
+    }
+    bar.innerHTML = '<div class="bar-in"><div class="bar-left">' + left + '</div><div class="bar-right">' + right + '</div></div>';
+    bar.hidden = false;
+    document.body.classList.add('has-bar');
+  }
+
+  /* ---------- 아래에서 올라오는 창 ---------- */
+  let lastFocus = null;
+  function openSheet(html, focusId) {
+    const root = $('#sheet-root');
+    lastFocus = document.activeElement;
+    root.innerHTML = '<div class="scrim" data-action="close-sheet"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">' + html + '</div>';
+    root.hidden = false;
+    document.body.classList.add('sheet-open');
+    const target = focusId ? $('#' + focusId) : $('.sheet button', root);
+    if (target) setTimeout(function () { target.focus(); }, 30);
+  }
+  function closeSheet() {
+    const root = $('#sheet-root');
+    if (root.hidden) return;
+    root.hidden = true;
+    root.innerHTML = '';
+    document.body.classList.remove('sheet-open');
+    if (ui.confirm) { const r = ui.confirm; ui.confirm = null; r(false); }
+    if (lastFocus && document.body.contains(lastFocus)) lastFocus.focus();
+  }
+  function confirmSheet(o) {
+    return new Promise(function (resolve) {
+      openSheet('<h2 id="sheet-title">' + esc(o.title) + '</h2><p class="sheet-sub">' + esc(o.body) + '</p>'
+        + '<div class="sheet-actions"><button type="button" class="btn" data-action="confirm-no">취소</button>'
+        + '<button type="button" class="btn ' + (o.danger ? 'btn-danger' : 'btn-primary') + '" data-action="confirm-yes">' + esc(o.ok) + '</button></div>', null);
+      ui.confirm = resolve;
+    });
+  }
+
+  function openApply(p) {
+    const u = S.me();
+    const verb = p.joinMode === 'instant' ? '참가하기' : '신청 보내기';
+    openSheet('<h2 id="sheet-title">' + (p.joinMode === 'instant' ? '바로 참가하기' : '참가 신청하기') + '</h2>'
+      + '<p class="sheet-sub">' + esc(R.postTitle(p)) + ' · ' + R.RULES[p.jobRule].label + '</p>'
+      + '<form id="apply-form" class="form tight" novalidate>'
+      + '<div class="field"><label for="a-nick">닉네임</label><input id="a-nick" maxlength="10" placeholder="2~10자" value="' + esc(u.nick || '') + '" autocomplete="off"></div>'
+      + '<div class="field"><label for="a-job">내 직무</label>' + jobSelect('a-job', u.job) + '</div>'
+      + '<div class="field"><label for="a-intro">한 줄 소개 <span class="opt">(선택)</span></label><input id="a-intro" maxlength="60" placeholder="예: 생산라인 실습 경험 있어요" autocomplete="off"></div>'
+      + '<p class="check-line" id="a-check" aria-live="polite"></p>'
+      + '<p class="hint">실명·연락처·학교명은 적지 마세요.</p>'
+      + '<div class="sheet-actions"><button type="button" class="btn" data-action="close-sheet">닫기</button>'
+      + '<button type="submit" class="btn btn-primary" id="a-submit">' + verb + '</button></div>'
+      + '</form>', 'a-nick');
+    updateApplyCheck(p);
+  }
+  function applyForm() {
+    return { nick: $('#a-nick').value, job: readJob('a-job'), intro: $('#a-intro').value };
+  }
+  function updateApplyCheck(p) {
+    const el = $('#a-check');
+    if (!el) return;
+    const f = applyForm();
+    let chk;
+    if (!f.job) { el.className = 'check-line'; el.textContent = '내 직무를 고르면 신청할 수 있는지 바로 알려 드려요.'; return; }
+    chk = R.ruleCheck(p, f.job);
+    if (chk.ok) chk = R.checkApply(p, S.me().uid, f, Date.now());
+    if (chk.ok) {
+      el.className = 'check-line ok';
+      el.textContent = p.joinMode === 'instant' ? '조건이 맞아요. 누르면 바로 참가돼요.' : '조건이 맞아요. 방장이 수락하면 참가돼요.';
+    } else {
+      el.className = 'check-line bad';
+      el.textContent = chk.reason;
+    }
+  }
+  function submitApply() {
+    const p = S.post(ui.postId);
+    if (!p) return;
+    const btn = $('#a-submit');
+    btn.disabled = true;
+    S.apply(p.id, applyForm()).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) {
+        const el = $('#a-check');
+        el.className = 'check-line bad';
+        el.textContent = r.reason;
+        return;
+      }
+      closeSheet();
+      toast(r.joined ? '참가했어요. 참가자 목록에 이름이 올라갔어요.' : '신청을 보냈어요. 방장이 수락하면 참가돼요.');
+    });
+  }
+
+  function shareUrl(p) {
+    if (S.kind === 'demo') return 'https://(사이트 주소)/#post-' + p.id;
+    return location.origin + location.pathname + '#post-' + p.id;
+  }
+  function openShare(p, justCreated) {
+    const text = R.shareText(p, shareUrl(p), Date.now());
+    openSheet('<h2 id="sheet-title">' + (justCreated ? '모집 글을 올렸어요' : '공유 문구') + '</h2>'
+      + '<p class="sheet-sub">아래 문구를 취업 단톡방에 붙여 넣으세요. 링크를 누르면 이 글로 바로 들어와요.</p>'
+      + '<label class="sr" for="share-text">공유 문구</label><textarea id="share-text" class="share-text" rows="5" readonly>' + esc(text) + '</textarea>'
+      + (S.kind === 'demo' ? '<p class="hint">체험 모드라 링크는 아직 열리지 않아요. 실제 주소에 올리면 이 링크로 바로 들어와요.</p>' : '')
+      + '<div class="sheet-actions"><button type="button" class="btn" data-action="close-sheet">닫기</button>'
+      + '<button type="button" class="btn btn-primary" data-action="copy-share">문구 복사</button></div>', null);
+  }
+  function copyText(ta) {
+    if (!ta) return;
+    const done = function () { toast('복사했어요. 단톡방에 붙여 넣으세요.'); };
+    const fallback = function () {
+      try {
+        ta.focus(); ta.select();
+        if (document.execCommand && document.execCommand('copy')) { done(); return; }
+      } catch (e) { /* 아래 안내로 */ }
+      ta.focus(); ta.select();
+      toast('문구를 선택해 뒀어요. 길게 눌러 복사해 주세요.');
+    };
+    try {
+      navigator.clipboard.writeText(ta.value).then(done, fallback);
+    } catch (e) { fallback(); }
+  }
+
+  /* ---------- 내 활동 ---------- */
+  function renderMe() {
+    const u = S.me();
+    const posts = S.posts().sort(function (a, b) { return b.createdAt - a.createdAt; });
+    const hosting = posts.filter(function (p) { return p.hostId === u.uid; });
+    const joined = posts.filter(function (p) { return p.hostId !== u.uid && (R.memberOf(p, u.uid) || R.applicationOf(p, u.uid)); });
+    const myChip = function (p) {
+      if (R.memberOf(p, u.uid)) return '<span class="chip ok">참가 중</span>';
+      const a = R.applicationOf(p, u.uid);
+      if (!a) return '';
+      return a.status === 'pending' ? '<span class="chip wait">수락 대기</span>' : '<span class="chip no">함께 못 함</span>';
+    };
+    const waitChip = function (p) {
+      const k = p.applicants.filter(function (a) { return a.status === 'pending'; }).length;
+      return k ? '<span class="chip wait">신청 ' + k + '명 대기</span>' : '';
+    };
+    view.innerHTML = '<h1 class="page-h">내 활동</h1>'
+      + '<section class="d-sec"><h2>내가 올린 모집 <span class="num">' + hosting.length + '</span></h2>'
+      + (hosting.length ? '<ol class="tickets">' + hosting.map(function (p) { return ticket(p, waitChip(p)); }).join('') + '</ol>'
+        : '<p class="muted">아직 올린 모집이 없어요. <a href="#new">모집 글 쓰기</a></p>') + '</section>'
+      + '<section class="d-sec"><h2>내가 신청한 모집 <span class="num">' + joined.length + '</span></h2>'
+      + (joined.length ? '<ol class="tickets">' + joined.map(function (p) { return ticket(p, myChip(p)); }).join('') + '</ol>'
+        : '<p class="muted">아직 신청한 모집이 없어요. <a href="#board">모집 글 보기</a></p>') + '</section>';
+  }
+
+  /* ---------- 이용 안내 ---------- */
+  function renderAbout() {
+    view.innerHTML = '<a class="back" href="#board">← 모집 글</a><h1 class="page-h">이용 안내</h1>'
+      + '<section class="detail prose">'
+      + '<h2>면스방은</h2><p>서류 합격 뒤 같은 회사 면접을 앞둔 사람끼리 면접 스터디를 모집하고 신청하는 곳이에요. 가입 없이 닉네임만으로 써요.</p>'
+      + '<h2>저장하는 정보</h2><ul>'
+      + '<li>모집 글: 회사, 직무, 전형, 면접일, 진행 방식, 정원, 소개</li>'
+      + '<li>참가·신청: 닉네임, 직무, 한 줄 소개</li>'
+      + '<li>이 브라우저를 구분하는 무작위 번호 (가입 대신 쓰는 익명 로그인)</li></ul>'
+      + '<p>실명, 전화번호, 이메일, 학교는 받지 않아요. 글에 전화번호나 이메일이 있으면 올라가지 않아요.</p>'
+      + '<h2>누가 볼 수 있나요</h2><p>모집 글과 참가자·신청자의 닉네임, 직무, 한 줄 소개는 사이트에 들어온 누구나 볼 수 있어요. 그래서 나를 알아볼 수 있는 내용은 적지 마세요.</p>'
+      + '<h2>지우기</h2><p>방장은 언제든 글을 지울 수 있고, 지우면 참가자·신청 기록도 함께 사라져요. 참가자는 언제든 나갈 수 있고, 신청자는 신청을 취소할 수 있어요.</p>'
+      + '<h2>같은 브라우저로 써 주세요</h2><p>가입이 없어서 다른 휴대폰이나 다른 브라우저로 들어오면 다른 사람으로 보여요. 카카오톡에서 링크를 열면 바깥 브라우저로 옮겨서 열어요.</p>'
+      + '</section>';
+  }
+
+  /* ---------- 화면 전환 ---------- */
+  function parseHash() {
+    const h = (location.hash || '').replace(/^#/, '');
+    if (h === 'new') return { route: 'new' };
+    if (h === 'me') return { route: 'me' };
+    if (h === 'about') return { route: 'about' };
+    const m = /^post-([a-z0-9]{4,16})$/.exec(h);
+    if (m) return { route: 'post', postId: m[1] };
+    return { route: 'board' };
+  }
+  function go(hash) {
+    if ((location.hash || '').replace(/^#/, '') === hash) route();
+    else location.hash = hash;
+  }
+  function render() {
+    renderDemoBar();
+    $$('[data-tab]').forEach(function (a) {
+      if (a.dataset.tab === ui.route) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+    if (ui.route !== 'post') renderActionBar(null);
+    if (ui.route === 'new') renderNew();
+    else if (ui.route === 'me') renderMe();
+    else if (ui.route === 'about') renderAbout();
+    else if (ui.route === 'post') renderDetail();
+    else renderBoard();
+  }
+  function route() {
+    const r = parseHash();
+    ui.route = r.route;
+    ui.postId = r.postId || null;
+    closeSheet();
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- 이벤트 ---------- */
+  document.addEventListener('click', function (e) {
+    const t = e.target.closest('[data-action]');
+    if (!t) return;
+    const a = t.dataset.action;
+    const p = ui.postId ? S.post(ui.postId) : null;
+    switch (a) {
+      case 'filter-rule':
+        ui.filters.rule = t.dataset.value;
+        saveFilters();
+        $$('[data-action="filter-rule"]').forEach(function (b) {
+          const on = b.dataset.value === ui.filters.rule;
+          b.classList.toggle('on', on);
+          b.setAttribute('aria-pressed', String(on));
+        });
+        renderList();
+        break;
+      case 'reset-demo':
+        confirmSheet({ title: '예시를 다시 채울까요?', body: '체험하며 만든 글과 신청이 모두 지워지고 처음 예시로 돌아가요.', ok: '다시 채우기', danger: true })
+          .then(function (yes) { if (yes) { S.resetDemo(); toast('처음 예시로 돌아갔어요.'); go('board'); } });
+        break;
+      case 'cap-minus':
+      case 'cap-plus': {
+        const o = $('#n-cap');
+        const v = Math.max(2, Math.min(6, Number(o.textContent) + (a === 'cap-plus' ? 1 : -1)));
+        o.textContent = String(v);
+        break;
+      }
+      case 'open-apply': if (p) openApply(p); break;
+      case 'share': if (p) openShare(p, false); break;
+      case 'copy-share': copyText($('#share-text')); break;
+      case 'close-sheet': closeSheet(); break;
+      case 'confirm-yes': {
+        const r = ui.confirm; ui.confirm = null; closeSheet(); if (r) r(true);
+        break;
+      }
+      case 'confirm-no': closeSheet(); break;
+      case 'cancel':
+        if (!p) break;
+        confirmSheet({ title: '신청을 취소할까요?', body: '방장에게 보낸 신청이 사라져요. 조건이 맞으면 다시 신청할 수 있어요.', ok: '신청 취소' })
+          .then(function (yes) { if (yes) S.cancel(p.id).then(function () { toast('신청을 취소했어요.'); }); });
+        break;
+      case 'leave':
+        if (!p) break;
+        confirmSheet({ title: '이 스터디에서 나갈까요?', body: '참가자 목록에서 빠지고 자리가 하나 비어요.', ok: '나가기', danger: true })
+          .then(function (yes) { if (yes) S.leave(p.id).then(function (r) { toast(r.ok ? '스터디에서 나왔어요.' : r.reason); }); });
+        break;
+      case 'accept':
+      case 'reject':
+        if (!p) break;
+        t.disabled = true;
+        S.decide(p.id, t.dataset.uid, a === 'accept').then(function (r) {
+          if (!r.ok) renderDetail();
+          toast(r.ok ? (a === 'accept' ? '수락했어요. 참가자에 추가됐어요.' : '거절했어요.') : r.reason);
+        });
+        break;
+      case 'reload': location.reload(); break;
+      case 'kick': {
+        if (!p) break;
+        const m = R.memberOf(p, t.dataset.uid);
+        if (!m) break;
+        confirmSheet({ title: m.nick + '님을 내보낼까요?', body: '내보낸 사람은 이 모집에 다시 신청할 수 없어요.', ok: '내보내기', danger: true })
+          .then(function (yes) { if (yes) S.kick(p.id, m.uid).then(function (r) { toast(r.ok ? '내보냈어요.' : r.reason); }); });
+        break;
+      }
+      case 'toggle-close': {
+        if (!p) break;
+        const closing = !p.closed;
+        S.setClosed(p.id, closing).then(function (r) {
+          toast(r.ok ? (closing ? '모집을 마감했어요. 더는 신청을 받지 않아요.' : '모집을 다시 열었어요.') : r.reason);
+        });
+        break;
+      }
+      case 'delete-post':
+        if (!p) break;
+        confirmSheet({ title: '모집 글을 지울까요?', body: '참가자와 신청 기록도 함께 사라지고, 되돌릴 수 없어요.', ok: '지우기', danger: true })
+          .then(function (yes) { if (yes) S.remove(p.id).then(function (r) { if (r.ok) { toast('모집 글을 지웠어요.'); go('board'); } else toast(r.reason); }); });
+        break;
+      default: break;
+    }
+  });
+
+  document.addEventListener('change', function (e) {
+    const t = e.target;
+    if (t.id === 'demo-user') {
+      S.switchUser(t.value);
+      if (ui.route === 'new') renderNew();
+      toast('지금 사용자: ' + userLabel(S.me()));
+      return;
+    }
+    if (t.matches('[data-job-select]')) {
+      const c = $('#' + t.id + '-custom');
+      if (c) { c.hidden = t.value !== '__custom'; if (!c.hidden) c.focus(); }
+    }
+    if (t.id === 'f-open') { ui.filters.openOnly = t.checked; saveFilters(); renderList(); }
+    if (t.id === 'f-mode') { ui.filters.mode = t.value; saveFilters(); renderList(); }
+    if (t.id === 'f-sort') { ui.filters.sort = t.value; saveFilters(); renderList(); }
+    if (t.name === 'mode' && t.closest('#new-form')) $('#place-field').hidden = t.value !== 'offline';
+    if (t.id === 'n-date-unknown') { $('#n-date').disabled = t.checked; if (t.checked) $('#n-date').value = ''; }
+    if (t.closest('#apply-form')) { const p = S.post(ui.postId); if (p) updateApplyCheck(p); }
+  });
+
+  document.addEventListener('input', function (e) {
+    const t = e.target;
+    if (t.id === 'f-q') { ui.filters.q = t.value; saveFilters(); renderList(); }
+    if (t.id === 'n-intro') $('#n-intro-count').textContent = t.value.length + '/300';
+    if (t.closest && t.closest('#apply-form')) { const p = S.post(ui.postId); if (p) updateApplyCheck(p); }
+  });
+
+  document.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (e.target.id === 'new-form') submitNew(e.target);
+    else if (e.target.id === 'apply-form') submitApply();
+  });
+
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
+
+  S.subscribe(function () {
+    renderDemoBar();
+    if (ui.route === 'board') renderList();
+    else if (ui.route === 'post') renderDetail();
+    else if (ui.route === 'me') renderMe();
+  });
+
+  S.init().then(function () {
+    window.addEventListener('hashchange', route);
+    route();
+  }, function (err) {
+    console.error('[면스방] 시작 실패', err);
+    view.innerHTML = '<div class="empty"><p class="empty-t">서버에 연결하지 못했어요.</p>'
+      + '<p>인터넷 연결을 확인한 뒤 새로고침해 주세요.</p>'
+      + '<button type="button" class="btn btn-primary" data-action="reload">새로고침</button></div>';
+  });
+})();
+
+</script>
+</body>
+</html>
