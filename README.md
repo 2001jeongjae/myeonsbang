@@ -20,6 +20,7 @@
 
 ## 디자인
 
-- 색·모양: 흰 바탕에 코랄 한 가지만 포인트로 쓰는 Airbnb 느낌 ([awesome-design-md](https://github.com/VoltAgent/awesome-design-md)의 Airbnb DESIGN.md 참고, 로고·이름은 쓰지 않음)
-- 규칙: [taste-skill](https://github.com/Leonxlnx/taste-skill) (MIT) 중 앱에 맞는 것만 적용: 버튼·카드·링크 모양 한 벌, 누를 곳 44px 이상, 본문 대비 7:1, 기울인 것 없음, 보라색 없음, 버튼은 누르면 눌리고 카드는 올리면 2px 뜸
+- 모양: 단순한 포트폴리오 예시처럼 큰 제목 + 파란 강조 한 줄 + 버튼, 오른쪽에 파란 덩어리 위 카드 두 장. 목록은 검색창과 직무 조건 버튼만 남김.
+- 색: 흰 바탕, 짙은 남색 글자(#18212f), 파랑 한 가지(버튼 #2f5fe3, 덩어리·로고 #4070f4)
+- 규칙: [taste-skill](https://github.com/Leonxlnx/taste-skill) (MIT) 중 앱에 맞는 것(모양 한 벌, 누를 곳 44px 이상, 본문 대비 7:1, 기울임 없음)과 [Vercel Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines) (보이는 포커스, transform·opacity만 움직임, 줄인 움직임 존중, 오류 문구를 칸에 연결, 주소에 필터 상태 담기, 쓰던 글 보호)
 - 글꼴: Pretendard (jsDelivr)
