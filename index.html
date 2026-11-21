@@ -588,6 +588,22 @@ body.in-room main { padding-bottom: 96px; }
 @media (max-width: 480px) { .field-row { grid-template-columns: 1fr; } }
 .tag-prof { font-size: 14px; color: var(--muted); }
 
+/* 같은 스터디 사람 프로필 */
+.p-open { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; min-height: 44px; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; border-radius: var(--r-sm); }
+.p-open .p-main { flex: 1; min-width: 0; }
+.p-more { flex: none; font-size: 13px; color: var(--muted); }
+.p-open:hover .p-name, .p-open:focus-visible .p-name { text-decoration: underline; text-underline-offset: 3px; }
+.appl-who .tag-nick.link { padding: 0; border: 0; background: none; min-height: 32px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.rh-people { display: block; max-width: 100%; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; min-height: 32px; }
+.prof-list { display: grid; gap: 12px; max-height: 60vh; overflow: auto; margin: 12px 0; }
+.prof-card { border: 1px solid var(--line-soft); border-radius: var(--r-md, 12px); padding: 14px 16px; }
+.prof-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.prof-name { font-weight: 700; font-size: 17px; margin: 0; }
+.prof-dl { display: grid; gap: 6px; margin: 0; }
+.prof-dl div { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 8px; }
+.prof-dl dt { color: var(--muted); font-size: 14px; }
+.prof-dl dd { margin: 0; overflow-wrap: anywhere; }
+
 </style>
 </head>
 <body>
@@ -1319,6 +1335,7 @@ body.in-room main { padding-bottom: 96px; }
     if (who && who.grade && R.GRADES.indexOf(who.grade) >= 0) e.grade = who.grade;
     return e;
   }
+  const profCache = new Map();
   function myProfile() { return { major: (prof.data && prof.data.major) || '', grade: (prof.data && prof.data.grade) || '' }; }
 
   function setUser(u) {
@@ -1457,6 +1474,24 @@ body.in-room main { padding-bottom: 96px; }
         grade: (inn && prof.data && prof.data.grade) || '',
         joinedAt: inn && user.metadata && user.metadata.creationTime ? Date.parse(user.metadata.creationTime) : 0
       };
+    },
+
+    /* 다른 사람 프로필 (같은 스터디 사람끼리 볼 때 씀). 1분 동안은 다시 묻지 않는다 */
+    profileOf: async function (who) {
+      if (!signedIn() || !who) return null;
+      const pick = function (d) { return { job: d.job || '', major: d.major || '', grade: d.grade || '', intro: d.intro || '' }; };
+      if (who === uid) return pick(prof.data || {});
+      const c = profCache.get(who);
+      if (c && Date.now() - c.at < 60000) return c.data;
+      try {
+        const ds = await fs.getDoc(fs.doc(db, 'users', who));
+        const out = pick(ds.exists() ? ds.data() : {});
+        profCache.set(who, { at: Date.now(), data: out });
+        return out;
+      } catch (err) {
+        console.error('[면스방] 프로필 읽기 실패', err && err.code);
+        return null;
+      }
     },
 
     /* ---------- 마이페이지 ---------- */
@@ -2087,10 +2122,52 @@ body.in-room main { padding-bottom: 96px; }
     return '<div class="rulebox rule-any"><b>직무 무관</b>직무와 상관없이 신청할 수 있어요.</div>';
   }
 
-  function nameTag(m, extra) {
-    return '<li class="person"><span class="avatar" aria-hidden="true">' + esc(initial(m.nick)) + '</span>'
+  function nameTag(m, extra, open) {
+    const inner = '<span class="avatar" aria-hidden="true">' + esc(initial(m.nick)) + '</span>'
       + '<span class="p-main"><span class="p-name">' + esc(m.nick) + (m.role === 'host' ? ' <span class="tag-host">방장</span>' : '') + '</span>'
-      + '<span class="p-job">' + [m.job, R.profileLine(m), m.intro].filter(Boolean).map(esc).join(' · ') + '</span></span>' + (extra || '') + '</li>';
+      + '<span class="p-job">' + [m.job, R.profileLine(m), m.intro].filter(Boolean).map(esc).join(' · ') + '</span></span>';
+    /* 같은 스터디 사람은 눌러서 프로필을 본다 */
+    return '<li class="person">' + (open ? '<button type="button" class="p-open" data-action="view-profile" data-uid="' + esc(m.uid) + '" aria-label="' + esc(m.nick) + ' 프로필 보기">' + inner + '<span class="p-more" aria-hidden="true">프로필 ›</span></button>' : inner)
+      + (extra || '') + '</li>';
+  }
+  /* ---------- 같은 스터디 사람 프로필 ---------- */
+  function personOf(p, who) {
+    return p.members.find(function (m) { return m.uid === who; }) || p.applicants.find(function (a) { return a.uid === who; }) || null;
+  }
+  function profileBody(e, live) {
+    const d = live || {};
+    const rows = [['이 모집 직무', e.job], ['지원 직무', d.job && d.job !== e.job ? d.job : ''], ['학과', d.major || e.major], ['학년', d.grade || e.grade], ['한 줄 소개', d.intro || e.intro]];
+    return '<dl class="prof-dl">' + rows.filter(function (r) { return r[1]; }).map(function (r) {
+      return '<div><dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd></div>';
+    }).join('') + '</dl>' + (d.major || d.grade || d.intro || e.major || e.grade || e.intro ? '' : '<p class="muted">학과·학년·소개는 아직 적지 않았어요.</p>');
+  }
+  function profileCardHtml(e, live, loading) {
+    return '<div class="prof-card" data-prof="' + esc(e.uid) + '"><div class="prof-top"><span class="avatar" aria-hidden="true">' + esc(initial(e.nick)) + '</span>'
+      + '<p class="prof-name">' + esc(e.nick) + (e.role === 'host' ? ' <span class="tag-host">방장</span>' : e.status === 'pending' ? ' <span class="chip wait">수락 대기</span>' : '') + '</p></div>'
+      + (loading ? '<p class="muted">프로필을 불러오는 중이에요…</p>' : profileBody(e, live)) + '</div>';
+  }
+  function fillProfiles(list) {
+    list.forEach(function (e) {
+      S.profileOf(e.uid).then(function (live) {
+        const box = document.querySelector('.prof-card[data-prof="' + (window.CSS && CSS.escape ? CSS.escape(e.uid) : e.uid) + '"]');
+        if (box) box.outerHTML = profileCardHtml(e, live, false);
+      });
+    });
+  }
+  function canSeePeople(p) { const u = S.me(); return !!(p && u.signedIn && R.memberOf(p, u.uid)); }
+  function openProfile(p, who) {
+    const e = personOf(p, who);
+    if (!e || !canSeePeople(p)) return;
+    openSheet('<h2 id="sheet-title" class="sr">' + esc(e.nick) + ' 프로필</h2>' + profileCardHtml(e, null, true)
+      + '<div class="sheet-actions"><button type="button" class="btn" data-action="close-sheet">닫기</button></div>', null);
+    fillProfiles([e]);
+  }
+  function openRoomPeople(p) {
+    if (!canSeePeople(p)) return;
+    openSheet('<h2 id="sheet-title">참가자 ' + p.members.length + '명</h2><p class="sheet-sub">같은 스터디 사람만 볼 수 있어요.</p>'
+      + '<div class="prof-list">' + p.members.map(function (m) { return profileCardHtml(m, null, true); }).join('') + '</div>'
+      + '<div class="sheet-actions"><button type="button" class="btn" data-action="close-sheet">닫기</button></div>', null);
+    fillProfiles(p.members);
   }
 
   function hostPanel(p, now) {
@@ -2104,7 +2181,7 @@ body.in-room main { padding-bottom: 96px; }
       inbox = '<h3>수락 기다리는 신청 <span class="num">' + pending.length + '</span></h3><ul class="appls">'
         + pending.map(function (a) {
           const chk = R.checkAccept(p, a, now);
-          return '<li class="appl"><div class="appl-who"><span class="tag-nick">' + esc(a.nick) + '</span><span class="tag-job">' + esc(a.job) + '</span>'
+          return '<li class="appl"><div class="appl-who"><button type="button" class="tag-nick link" data-action="view-profile" data-uid="' + esc(a.uid) + '" aria-label="' + esc(a.nick) + ' 프로필 보기">' + esc(a.nick) + '</button><span class="tag-job">' + esc(a.job) + '</span>'
             + (R.profileLine(a) ? '<span class="tag-prof">' + esc(R.profileLine(a)) + '</span>' : '')
             + '<span class="appl-when">' + esc(ago(a.at, now)) + '</span></div>'
             + (a.intro ? '<p class="appl-intro">' + esc(a.intro) + '</p>' : '')
@@ -2160,7 +2237,7 @@ body.in-room main { padding-bottom: 96px; }
       + (p.intro ? '<section class="d-sec"><h2>방장 한마디</h2><p class="intro">' + esc(p.intro) + '</p></section>' : '')
       + '<section class="d-sec"><h2>참가자 <span class="num">' + p.members.length + '/' + p.capacity + '</span></h2><ul class="people">'
       + p.members.map(function (m) {
-        return nameTag(m, isHost && m.role !== 'host' ? '<button type="button" class="link danger" data-action="kick" data-uid="' + esc(m.uid) + '">내보내기</button>' : '');
+        return nameTag(m, isHost && m.role !== 'host' ? '<button type="button" class="link danger" data-action="kick" data-uid="' + esc(m.uid) + '">내보내기</button>' : '', canSeePeople(p));
       }).join('') + seats + '</ul></section>'
       + (isHost ? hostPanel(p, now) : '')
       + '</article>';
@@ -2508,7 +2585,7 @@ body.in-room main { padding-bottom: 96px; }
       view.dataset.room = id;
       view.innerHTML = '<div class="room-head"><a class="back" href="#chat">← 메시지</a>'
         + '<div class="rh-main"><h1 class="rh-title">' + esc(p.company) + ' <span>' + esc(ticketTitle(p)) + '</span></h1>'
-        + '<p class="rh-sub" id="room-who"></p></div>'
+        + '<button type="button" class="rh-sub rh-people" id="room-who" data-action="room-people"></button></div>'
         + '<a class="link" href="#post-' + esc(p.id) + '">모집 글</a></div>'
         + '<p class="room-note">이 방은 참가자만 볼 수 있어요. 나가거나 내보내지면 더는 볼 수 없어요.</p>'
         + '<ol class="msgs" id="msgs" aria-live="polite" aria-label="메시지"></ol>';
@@ -2530,7 +2607,7 @@ body.in-room main { padding-bottom: 96px; }
     const p = S.post(id);
     if (!box || !p) return;
     const u = S.me();
-    $('#room-who').textContent = p.members.map(function (m) { return m.nick; }).join(', ') + ' · ' + p.members.length + '명';
+    $('#room-who').textContent = p.members.map(function (m) { return m.nick; }).join(', ') + ' · ' + p.members.length + '명 · 프로필 보기';
     const st = S.roomState(id);
     const nearBottom = first || (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 120);
     let html = '';
@@ -3080,6 +3157,8 @@ body.in-room main { padding-bottom: 96px; }
       case 'share': if (p) openShare(p, false); break;
       case 'copy-share': copyText($('#share-text')); break;
       case 'close-sheet': closeSheet(); break;
+      case 'view-profile': if (p) openProfile(p, t.dataset.uid); break;
+      case 'room-people': if (p) openRoomPeople(p); break;
       case 'confirm-yes': {
         const r = ui.confirm; ui.confirm = null; closeSheet(); if (r) r(true);
         break;
