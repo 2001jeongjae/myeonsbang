@@ -2,15 +2,20 @@ rules_version = '2';
 
 // 면스방 보안 규칙
 // - 모집 글은 누구나 읽는다 (공개 게시판).
-// - 글은 익명 로그인한 사람이 자기 이름(hostId)으로만 만든다.
+// - 글은 아이디로 가입·로그인한 사람이 자기 이름(hostId)으로만 만든다.
 // - 방장은 마감, 수락·거절, 내보내기, 글 지우기를 할 수 있다.
 // - 다른 사람은 참가자·신청자 목록에서 '자기 칸'만 바꿀 수 있다 (참가, 신청, 신청 취소, 나가기).
 // - 거절되거나 내보내진 사람은 같은 글에 다시 들어올 수 없다.
+// - 글마다 채팅방(messages)이 있고, 참가자만 읽고 쓴다.
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // 아이디·비밀번호로 가입한 사람만 쓴다. 익명 로그인이나 다른 메일 주소로 만든 계정은 막는다.
     function signedIn() {
-      return request.auth != null;
+      return request.auth != null
+        && 'email' in request.auth.token
+        && request.auth.token.email is string
+        && request.auth.token.email.matches('^[a-z0-9_]{4,16}@users[.]myeonsbang[.]app$');
     }
 
     function str(v, lo, hi) {
@@ -119,6 +124,23 @@ service cloud.firestore {
         (resource.data.hostId == request.auth.uid && validHostUpdate())
         || (resource.data.hostId != request.auth.uid && validSelfUpdate())
       );
+
+      // 스터디 채팅: 지금 참가 중인 사람(방장 포함)만 읽고 쓴다. 나가거나 내보내지면 바로 못 본다.
+      // 메시지는 고치거나 지울 수 없다.
+      function inRoom() {
+        return request.auth.uid in get(/databases/$(database)/documents/posts/$(postId)).data.members;
+      }
+      function validMessage() {
+        let m = request.resource.data;
+        return m.keys().hasAll(['uid', 'nick', 'text', 'at']) && m.keys().hasOnly(['uid', 'nick', 'text', 'at'])
+          && m.uid == request.auth.uid
+          && str(m.nick, 1, 14) && str(m.text, 1, 500)
+          && m.at is int && math.abs(m.at - request.time.toMillis()) < 600000;
+      }
+      match /messages/{messageId} {
+        allow read: if signedIn() && inRoom();
+        allow create: if signedIn() && inRoom() && validMessage();
+      }
     }
   }
 }

@@ -453,6 +453,74 @@ body.has-bar .foot { padding-bottom: 120px; }
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 
+/* ---------- 로그인 · 가입 ---------- */
+.check-line:empty { display: none; }
+.auth { padding-top: 28px; }
+.auth-tabs { display: flex; gap: 4px; padding: 4px; border-radius: var(--r-full); background: var(--soft); width: max-content; }
+.auth-tabs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: var(--r-full); color: var(--muted); font-weight: 600; text-decoration: none; }
+.auth-tabs a.on { background: var(--canvas); color: var(--ink); box-shadow: 0 1px 2px rgba(16, 24, 40, .08); }
+.auth .form h1 { margin-top: 20px; }
+.show-pw { justify-self: start; }
+.note { margin: 0; padding: 12px 14px; border-radius: var(--r-sm); background: var(--accent-soft); color: var(--accent-text); font-size: 15px; line-height: 1.55; }
+.note.ok { background: var(--ok-bg); color: var(--ok); }
+.note.warn { background: var(--wait-bg); color: var(--wait); }
+.note a { color: inherit; font-weight: 600; }
+.auth-switch { margin: 0; text-align: center; color: var(--muted); font-size: 15px; }
+.auth-switch a { color: var(--accent-text); font-weight: 600; }
+.as-who { margin: 0; color: var(--muted); font-size: 15px; }
+.me-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; }
+.me-head .page-h { margin-bottom: 0; }
+.account { display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 10px; border: 1px solid var(--line); border-radius: var(--r-md); }
+.acc-main { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+.acc-main b { color: var(--ink); }
+.acc-id { color: var(--muted); font-size: 14px; }
+
+/* ---------- 메시지 ---------- */
+.nav a.has-dot::before { content: ""; position: absolute; top: 10px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.chat-lead { margin: 0 0 20px; }
+.rooms { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-soft); }
+.room-row { display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 12px 4px; border-bottom: 1px solid var(--line-soft); color: inherit; text-decoration: none; }
+.room-row:hover { background: var(--soft); }
+.room-row .avatar { background: var(--accent-soft); color: var(--accent-text); }
+.rr-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.rr-top { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.rr-top b { color: var(--ink); white-space: nowrap; }
+.rr-sub { color: var(--muted); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rr-last { color: var(--muted); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.room-row.unread .rr-last { color: var(--ink); font-weight: 600; }
+.rr-side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.rr-time { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.rr-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+
+.room-head { position: sticky; top: var(--top-h); z-index: 5; display: flex; align-items: center; gap: 12px; margin: 0 -24px; padding: 10px 24px; background: rgba(255, 255, 255, .96); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line-soft); }
+.room-head .back { margin: 0; flex: none; }
+.rh-main { flex: 1; min-width: 0; }
+.rh-title { margin: 0; font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rh-title span { color: var(--muted); font-weight: 500; font-size: 15px; }
+.rh-sub { margin: 0; color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.room-head .link { flex: none; }
+.room-note { margin: 16px 0 0; color: var(--muted); font-size: 13px; text-align: center; }
+.msgs { list-style: none; margin: 8px 0 0; padding: 0 0 8px; display: flex; flex-direction: column; gap: 4px; }
+.msg-info { padding: 40px 0; text-align: center; color: var(--muted); }
+.msg-day { display: flex; justify-content: center; margin: 16px 0 8px; }
+.msg-day span { padding: 4px 12px; border-radius: var(--r-full); background: var(--soft); color: var(--muted); font-size: 13px; }
+.msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 100%; }
+.msg.head { margin-top: 10px; }
+.msg-nick { margin: 0 0 4px 4px; color: var(--body); font-size: 13px; font-weight: 600; }
+.msg-line { display: flex; align-items: flex-end; gap: 6px; max-width: min(78%, 520px); }
+.msg.mine { align-items: flex-end; }
+.msg.mine .msg-line { flex-direction: row-reverse; }
+.bubble { padding: 9px 13px; border-radius: 18px; border-top-left-radius: 6px; background: var(--soft); color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+.msg.mine .bubble { background: var(--accent); color: var(--on-accent); border-top-left-radius: 18px; border-top-right-radius: 6px; }
+.bubble a { color: inherit; text-decoration: underline; }
+.msg-time { flex: none; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.composer { max-width: 760px; margin: 0 auto; padding: 10px 24px calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: flex-end; gap: 10px; }
+.composer textarea { flex: 1; min-height: 44px; max-height: 140px; padding: 10px 14px; border: 1px solid var(--field); border-radius: 22px; font: inherit; font-size: 16px; line-height: 1.4; resize: none; background: var(--canvas); color: var(--ink); }
+.composer .btn { flex: none; border-radius: 22px; }
+body.in-room .foot { display: none; }
+body.in-room main { padding-bottom: 96px; }
+@media (max-width: 480px) { .composer { padding-left: 16px; padding-right: 16px; } .room-head { margin: 0 -16px; padding: 10px 16px; } }
+
 </style>
 </head>
 <body>
@@ -461,7 +529,7 @@ body.has-bar .foot { padding-bottom: 120px; }
 <header class="top">
   <div class="top-in">
     <a class="logo" href="#board" aria-label="면스방 처음 화면" translate="no"><span class="logo-mark" aria-hidden="true">면</span><span class="logo-text">면스방</span></a>
-    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a href="#me" data-tab="me">내 활동</a><a class="nav-wide" href="#jobs" data-tab="jobs">채용 일정</a><a class="nav-wide" href="#about" data-tab="about">이용 안내</a></nav>
+    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a href="#me" data-tab="me">내 활동</a><a href="#chat" data-tab="chat">메시지</a><a class="nav-wide" href="#jobs" data-tab="jobs">채용 일정</a><a class="nav-wide" href="#about" data-tab="about">이용 안내</a><a id="auth-link" class="nav-wide" href="#login" data-tab="login">로그인</a></nav>
     <a class="btn btn-primary btn-new" href="#new"><span class="wide-only">모집 </span>글 쓰기</a>
   </div>
 </header>
@@ -598,6 +666,40 @@ body.has-bar .foot { padding-bottom: 120px; }
     return privacyIssue(s);
   }
 
+  /* 회원 가입: 아이디·비밀번호 (메일 인증 없이 쓴다) */
+  const ID_DOMAIN = 'users.myeonsbang.app';
+  function usernameIssue(id) {
+    const s = String(id || '').trim();
+    if (!s) return '아이디를 적어 주세요.';
+    if (!/^[a-z0-9_]+$/.test(s)) return '아이디는 영어 소문자, 숫자, 밑줄(_)만 쓸 수 있어요.';
+    if (s.length < 4 || s.length > 16) return '아이디는 4~16자로 적어 주세요.';
+    return null;
+  }
+  function passwordIssue(pw) {
+    const s = String(pw || '');
+    if (s.length < 8) return '비밀번호는 8자 이상으로 적어 주세요.';
+    if (s.length > 64) return '비밀번호는 64자 안으로 적어 주세요.';
+    if (!/[a-zA-Z]/.test(s) || !/[0-9]/.test(s)) return '비밀번호에 영어와 숫자를 함께 넣어 주세요.';
+    return null;
+  }
+  function validateSignup(f) {
+    const errors = {};
+    const u = usernameIssue(normUsername(f.username));
+    if (u) errors.username = u;
+    const p = passwordIssue(f.password);
+    if (p) errors.password = p;
+    else if (f.password !== f.password2) errors.password2 = '비밀번호가 서로 달라요.';
+    const n = nickIssue(f.nick);
+    if (n) errors.nick = n;
+    return { ok: !Object.keys(errors).length, errors: errors };
+  }
+  function normUsername(id) { return String(id || '').trim().toLowerCase(); }
+  function idToEmail(id) { return normUsername(id) + '@' + ID_DOMAIN; }
+  function emailToId(email) {
+    const m = /^([a-z0-9_]{4,16})@users\.myeonsbang\.app$/.exec(String(email || ''));
+    return m ? m[1] : '';
+  }
+
   /* 직무 조건 검사: 같은 직무끼리 / 다른 직무끼리 / 무관 */
   function ruleCheck(post, job) {
     if (!String(job || '').trim()) return { ok: false, code: 'job', reason: '내 직무를 골라 주세요.' };
@@ -726,7 +828,9 @@ body.has-bar .foot { padding-bottom: 120px; }
     squash: squash, jobKey: jobKey, canonicalJob: canonicalJob,
     todayKST: todayKST, addDays: addDays, daysUntil: daysUntil, ddayLabel: ddayLabel, dateLabel: dateLabel, isYmd: isYmd,
     statusOf: statusOf, memberOf: memberOf, applicationOf: applicationOf,
-    privacyIssue: privacyIssue, nickIssue: nickIssue, ruleCheck: ruleCheck,
+    privacyIssue: privacyIssue, nickIssue: nickIssue,
+    usernameIssue: usernameIssue, passwordIssue: passwordIssue, validateSignup: validateSignup,
+    normUsername: normUsername, idToEmail: idToEmail, emailToId: emailToId, ruleCheck: ruleCheck,
     checkApply: checkApply, checkAccept: checkAccept, uniqueNick: uniqueNick, validatePost: validatePost,
     newId: newId, postTitle: postTitle, shareText: shareText
   };
@@ -837,7 +941,9 @@ body.has-bar .foot { padding-bottom: 120px; }
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
-/* 면스방 저장소 (실서비스): Firebase Firestore + 익명 로그인.
+/* 면스방 저장소 (실서비스): Firebase Firestore + 아이디·비밀번호 로그인.
+   아이디는 'abc@users.myeonsbang.app' 꼴의 가짜 메일로 바꿔 Firebase에 넣는다 (메일은 보내지 않는다).
+   예전 익명 로그인 사용자가 가입하면 같은 uid를 이어 받아서 쓰던 글과 신청이 그대로 남는다.
    체험 저장소(store.js)와 함수 이름이 같아서 화면 코드는 그대로 쓴다.
    글 한 건 = posts/{id} 문서 하나. 참가자·신청자는 uid를 키로 한 맵으로 저장한다. */
 (function (root) {
@@ -852,6 +958,13 @@ body.has-bar .foot { padding-bottom: 120px; }
   let fs = null;
   let db = null;
   let uid = null;
+  let auth = null;
+  let authMod = null;
+  let user = null;
+  /* 채팅: 방마다 마지막 메시지 1개를 지켜보고, 연 방만 최근 메시지를 통째로 지켜본다 */
+  const lastMsg = new Map();      // postId -> 마지막 메시지 | null
+  const previewSubs = new Map();  // postId -> 구독 해제 함수
+  let room = { id: null, list: null, error: null, off: null };
 
   function lsGet(k) { try { return root.localStorage.getItem(k) || ''; } catch (e) { return ''; } }
   function lsSet(k, v) { try { root.localStorage.setItem(k, v); } catch (e) { /* 무시 */ } }
@@ -885,12 +998,14 @@ body.has-bar .foot { padding-bottom: 120px; }
   }
   function ref(id) { return fs.doc(db, 'posts', id); }
   function write(id, data) {
+    if (!signedIn()) return Promise.resolve(needLogin());
     return fs.updateDoc(ref(id), data).then(function () { return { ok: true }; }, function (err) {
       console.error('[면스방] 저장 실패', err);
       return { ok: false, reason: failReason(err) };
     });
   }
   function asHost(id) {
+    if (!signedIn()) return '로그인하고 이용해 주세요.';
     const p = cache.get(id);
     if (!p) return '글을 찾을 수 없어요.';
     if (p.hostId !== uid) return '방장만 할 수 있어요.';
@@ -900,6 +1015,67 @@ body.has-bar .foot { padding-bottom: 120px; }
     const j = R.canonicalJob(job);
     return { nick: nick, job: j, jobKey: R.jobKey(j), intro: String(intro || '').trim().slice(0, 60), at: at };
   }
+
+  function setUser(u) {
+    user = u || null;
+    uid = user ? user.uid : null;
+  }
+  function signedIn() { return !!(user && !user.isAnonymous && R.emailToId(user.email)); }
+  function authReason(err) {
+    const code = (err && err.code) || '';
+    if (code === 'auth/email-already-in-use' || code === 'auth/credential-already-in-use') return { field: 'username', msg: '이미 쓰고 있는 아이디예요. 다른 아이디를 적어 주세요.' };
+    if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found' || code === 'auth/invalid-login-credentials') return { msg: '아이디 또는 비밀번호가 맞지 않아요.' };
+    if (code === 'auth/weak-password') return { field: 'password', msg: '비밀번호를 더 길게 만들어 주세요.' };
+    if (code === 'auth/too-many-requests') return { msg: '시도가 너무 많았어요. 잠시 뒤 다시 해 보세요.' };
+    if (code === 'auth/network-request-failed') return { msg: '인터넷 연결이 불안정해요. 잠시 뒤 다시 해 보세요.' };
+    if (code === 'auth/operation-not-allowed') return { msg: '지금은 가입을 받을 수 없어요. 운영자에게 알려 주세요.' };
+    return { msg: '처리하지 못했어요. 잠시 뒤 다시 해 보세요.' };
+  }
+  function authFail(err) {
+    console.error('[면스방] 로그인 오류', err && err.code);
+    const r = authReason(err);
+    const out = { ok: false, reason: r.msg };
+    if (r.field) { out.errors = {}; out.errors[r.field] = r.msg; }
+    return out;
+  }
+  function needLogin() { return { ok: false, reason: '로그인하고 이용해 주세요.', login: true }; }
+
+  function msgFrom(ds) {
+    const d = ds.data();
+    return { id: ds.id, uid: d.uid, nick: d.nick, text: d.text, at: d.at || 0 };
+  }
+  function msgCol(id) { return fs.collection(db, 'posts', id, 'messages'); }
+  function myRoomIds() {
+    if (!signedIn()) return [];
+    return Array.from(cache.values()).filter(function (p) { return R.memberOf(p, uid); }).map(function (p) { return p.id; });
+  }
+  /* 참가 중인 방이 바뀌면 미리보기 구독을 맞춘다 */
+  function syncPreviews() {
+    if (!fs) return;
+    const want = new Set(myRoomIds());
+    previewSubs.forEach(function (off, id) {
+      if (!want.has(id)) { off(); previewSubs.delete(id); lastMsg.delete(id); }
+    });
+    want.forEach(function (id) {
+      if (previewSubs.has(id)) return;
+      const q = fs.query(msgCol(id), fs.orderBy('at', 'desc'), fs.limit(1));
+      previewSubs.set(id, fs.onSnapshot(q, function (snap) {
+        lastMsg.set(id, snap.docs.length ? msgFrom(snap.docs[0]) : null);
+        emit();
+      }, function (err) {
+        console.error('[면스방] 채팅 미리보기 오류', err && err.code);
+        const off = previewSubs.get(id); if (off) off();
+        previewSubs.delete(id);
+      }));
+    });
+    if (room.id && !want.has(room.id)) closeRoom();
+  }
+  function closeRoom() {
+    if (room.off) room.off();
+    room = { id: null, list: null, error: null, off: null };
+  }
+  function readKey() { return 'myeonsbang-read-' + uid; }
+  function readMap() { try { return JSON.parse(lsGet(readKey()) || '{}') || {}; } catch (e) { return {}; } }
 
   function withTimeout(promise, ms) {
     return new Promise(function (resolve, reject) {
@@ -914,14 +1090,15 @@ body.has-bar .foot { padding-bottom: 120px; }
     const mods = await Promise.all([
       import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')
     ]);
-    const appMod = mods[0], authMod = mods[1];
+    const appMod = mods[0];
+    authMod = mods[1];
     fs = mods[2];
     const app = appMod.initializeApp(cfg);
-    const auth = authMod.getAuth(app);
+    auth = authMod.getAuth(app);
     try { db = fs.initializeFirestore(app, { experimentalAutoDetectLongPolling: true }); } catch (e) { db = fs.getFirestore(app); }
     await auth.authStateReady();
-    if (!auth.currentUser) await authMod.signInAnonymously(auth);
-    uid = auth.currentUser.uid;
+    setUser(auth.currentUser);
+    authMod.onAuthStateChanged(auth, function (u) { setUser(u); syncPreviews(); emit(); });
 
     await new Promise(function (resolve, reject) {
       let first = true;
@@ -932,6 +1109,7 @@ body.has-bar .foot { padding-bottom: 120px; }
           else { const p = fromDoc(ch.doc); if (p) cache.set(p.id, p); }
         });
         if (first) { first = false; resolve(); }
+        syncPreviews();
         emit();
       }, function (err) {
         console.error('[면스방] 목록 오류', err);
@@ -946,12 +1124,117 @@ body.has-bar .foot { padding-bottom: 120px; }
     init: function () { return withTimeout(start(), 20000); },
     subscribe: function (fn) { listeners.add(fn); return function () { listeners.delete(fn); }; },
 
-    me: function () { return { uid: uid, nick: lsGet(NICK_KEY), job: lsGet(JOB_KEY) }; },
+    me: function () {
+      const inn = signedIn();
+      return {
+        uid: uid, signedIn: inn, anon: !!(user && user.isAnonymous),
+        username: inn ? R.emailToId(user.email) : '',
+        nick: (inn && user.displayName) || lsGet(NICK_KEY), job: lsGet(JOB_KEY)
+      };
+    },
+
+    signUp: async function (f) {
+      const v = R.validateSignup(f);
+      if (!v.ok) return { ok: false, errors: v.errors };
+      const email = R.idToEmail(f.username);
+      const nick = String(f.nick).trim();
+      const wasAnon = !!(user && user.isAnonymous);
+      try {
+        let cred;
+        if (wasAnon) cred = await authMod.linkWithCredential(user, authMod.EmailAuthProvider.credential(email, f.password));
+        else cred = await authMod.createUserWithEmailAndPassword(auth, email, f.password);
+        await authMod.updateProfile(cred.user, { displayName: nick });
+        await cred.user.getIdToken(true);
+        setUser(auth.currentUser);
+        lsSet(NICK_KEY, nick);
+        emit();
+        return { ok: true, linked: wasAnon };
+      } catch (err) { return authFail(err); }
+    },
+
+    signIn: async function (f) {
+      const id = R.normUsername(f.username);
+      if (R.usernameIssue(id) || !f.password) return { ok: false, reason: '아이디 또는 비밀번호가 맞지 않아요.' };
+      try {
+        const cred = await authMod.signInWithEmailAndPassword(auth, R.idToEmail(id), f.password);
+        setUser(cred.user);
+        if (cred.user.displayName) lsSet(NICK_KEY, cred.user.displayName);
+        emit();
+        return { ok: true };
+      } catch (err) { return authFail(err); }
+    },
+
+    signOut: async function () {
+      closeRoom();
+      previewSubs.forEach(function (off) { off(); });
+      previewSubs.clear();
+      lastMsg.clear();
+      try { await authMod.signOut(auth); } catch (e) { /* 무시 */ }
+      lsSet(NICK_KEY, '');
+      setUser(null);
+      emit();
+      return { ok: true };
+    },
     users: function () { return []; },
     switchUser: function () { /* 실서비스에는 없음 */ },
     resetDemo: function () { /* 실서비스에는 없음 */ },
 
     posts: function () { return Array.from(cache.values()); },
+
+    /* ---------- 채팅 ---------- */
+    rooms: function () {
+      return myRoomIds().map(function (id) { return { post: cache.get(id), last: lastMsg.has(id) ? lastMsg.get(id) : undefined }; });
+    },
+    openRoom: function (id) {
+      if (room.id === id) return;
+      closeRoom();
+      if (!signedIn()) return;
+      room.id = id;
+      const q = fs.query(msgCol(id), fs.orderBy('at', 'asc'), fs.limitToLast(200));
+      room.off = fs.onSnapshot(q, function (snap) {
+        if (room.id !== id) return;
+        room.list = snap.docs.map(msgFrom);
+        room.error = null;
+        emit();
+      }, function (err) {
+        console.error('[면스방] 채팅 오류', err && err.code);
+        if (room.id !== id) return;
+        room.error = err && err.code === 'permission-denied' ? '이 채팅방은 참가자만 볼 수 있어요.' : '채팅을 불러오지 못했어요. 새로고침해 보세요.';
+        emit();
+      });
+    },
+    closeRoom: closeRoom,
+    roomState: function (id) {
+      if (room.id !== id) return { loading: true, list: [] };
+      return { loading: room.list === null && !room.error, list: room.list || [], error: room.error };
+    },
+    send: async function (id, text) {
+      if (!signedIn()) return needLogin();
+      const t = String(text || '').trim();
+      if (!t) return { ok: false, reason: '메시지를 적어 주세요.' };
+      if (t.length > 500) return { ok: false, reason: '메시지는 500자 안으로 적어 주세요.' };
+      const p = cache.get(id);
+      const m = p && R.memberOf(p, uid);
+      if (!m) return { ok: false, reason: '참가자만 메시지를 보낼 수 있어요.' };
+      try {
+        await fs.addDoc(msgCol(id), { uid: uid, nick: m.nick, text: t, at: Date.now() });
+        return { ok: true };
+      } catch (err) {
+        console.error('[면스방] 메시지 실패', err && err.code);
+        return { ok: false, reason: failReason(err) };
+      }
+    },
+    markRead: function (id) {
+      const m = readMap();
+      const last = lastMsg.get(id);
+      m[id] = Math.max(m[id] || 0, last ? last.at : 0, Date.now());
+      lsSet(readKey(), JSON.stringify(m));
+    },
+    unread: function (id) {
+      const last = lastMsg.get(id);
+      if (!last || last.uid === uid) return false;
+      return last.at > (readMap()[id] || 0);
+    },
     post: function (id) { return cache.get(id) || null; },
 
     /* 목록(최근 200개)에 없는 글을 링크로 열었을 때 따로 불러온다: 'found' | 'loading' | 'missing' */
@@ -969,6 +1252,8 @@ body.has-bar .foot { padding-bottom: 120px; }
     },
 
     createPost: async function (f) {
+      if (!signedIn()) return needLogin();
+      f = Object.assign({}, f, { nick: user.displayName || f.nick });
       const now = Date.now();
       const v = R.validatePost(f, now);
       if (!v.ok) return { ok: false, errors: v.errors };
@@ -1003,6 +1288,8 @@ body.has-bar .foot { padding-bottom: 120px; }
     },
 
     apply: async function (id, f) {
+      if (!signedIn()) return needLogin();
+      f = Object.assign({}, f, { nick: user.displayName || f.nick });
       const p = cache.get(id);
       if (!p) return { ok: false, reason: '글을 찾을 수 없어요.' };
       const chk = R.checkApply(p, uid, f, Date.now());
@@ -1147,7 +1434,8 @@ body.has-bar .foot { padding-bottom: 120px; }
 
   function hostOf(p) { return p.members.find(function (m) { return m.role === 'host'; }) || null; }
   function userLabel(u) {
-    if (u.uid === 'u-me') return '나' + (u.nick ? ' (' + u.nick + ')' : '');
+    if (u.guest) return '로그인 안 한 손님';
+    if (u.account) return u.nick + ' (새로 가입한 계정)';
     return u.nick + ' · ' + u.job;
   }
 
@@ -1348,8 +1636,7 @@ body.has-bar .foot { padding-bottom: 120px; }
       + '<textarea id="n-intro" name="intro" rows="4" maxlength="300" placeholder="예: 직무 질문 위주로 평일 저녁에 연습해요…"></textarea>'
       + '<div class="meta-row"><p class="hint">실명·연락처·학교명은 적지 마세요.</p><span class="counter" id="n-intro-count">0/300</span></div>'
       + '<p class="err" data-err="intro"></p></div>'
-      + '<div class="field"><label for="n-nick">내 닉네임</label><input id="n-nick" name="nick" maxlength="10" placeholder="예: 면접왕…" value="' + esc(u.nick || '') + '" autocomplete="off" spellcheck="false">'
-      + '<p class="err" data-err="nick"></p></div>'
+      + '<p class="as-who">' + esc(u.nick) + ' 닉네임으로 올라가요.</p>'
       + '</fieldset>'
 
       + '<div class="submit-bar"><button class="btn btn-primary btn-wide" type="submit">모집 글 올리기</button></div>'
@@ -1367,7 +1654,7 @@ body.has-bar .foot { padding-bottom: 120px; }
       if (msg) { ctl.setAttribute('aria-invalid', 'true'); ctl.setAttribute('aria-describedby', el.id); }
       else { ctl.removeAttribute('aria-invalid'); ctl.removeAttribute('aria-describedby'); }
     });
-    const order = ['company', 'job', 'stage', 'interviewDate', 'jobRule', 'joinMode', 'capacity', 'mode', 'place', 'intro', 'nick'];
+    const order = ['company', 'job', 'stage', 'interviewDate', 'jobRule', 'joinMode', 'capacity', 'mode', 'place', 'intro', 'username', 'nick', 'password', 'password2'];
     const first = order.find(function (k) { return errors[k]; });
     if (first) {
       const el = $('[data-err="' + first + '"]', form);
@@ -1388,7 +1675,7 @@ body.has-bar .foot { padding-bottom: 120px; }
       interviewDate: unknown ? null : ($('#n-date').value || null),
       mode: checked('mode'), place: $('#n-place').value, capacity: Number($('#n-cap').textContent),
       jobRule: checked('jobRule'), joinMode: checked('joinMode'),
-      intro: $('#n-intro').value, nick: $('#n-nick').value
+      intro: $('#n-intro').value, nick: S.me().nick
     };
     const errors = R.validatePost(f, Date.now()).errors;
     if (!unknown && !f.interviewDate) errors.interviewDate = '면접일을 고르거나 ‘아직 몰라요’를 눌러 주세요.';
@@ -1400,6 +1687,7 @@ body.has-bar .foot { padding-bottom: 120px; }
       btn.disabled = false;
       btn.textContent = '모집 글 올리기';
       if (!res.ok) {
+        if (res.login) { ui.dirty = false; go('login?next=new'); toast(res.reason); return; }
         if (res.errors) showErrors(form, res.errors);
         if (res.reason) toast(res.reason);
         return;
@@ -1514,16 +1802,19 @@ body.has-bar .foot { padding-bottom: 120px; }
     const ap = R.applicationOf(p, u.uid);
     const share = '<button type="button" class="btn" data-action="share">공유 문구</button>';
     let left, right;
+    const chatBtn = '<a class="btn btn-primary" href="#chat-' + esc(p.id) + '">채팅방</a>';
     if (p.hostId === u.uid) {
-      left = '<span class="bar-note">내가 올린 모집이에요</span>'; right = share;
+      left = share; right = chatBtn;
     } else if (mine) {
-      left = '<span class="bar-note ok">참가 중이에요</span>'; right = '<button type="button" class="btn" data-action="leave">나가기</button>' + share;
+      left = '<span class="bar-note ok">참가 중</span>'; right = '<button type="button" class="btn" data-action="leave">나가기</button>' + chatBtn;
     } else if (ap && ap.status === 'pending') {
       left = '<span class="bar-note wait">방장 수락을 기다리는 중</span>'; right = '<button type="button" class="btn" data-action="cancel">신청 취소</button>';
     } else if (ap && ap.status === 'rejected') {
       left = '<span class="bar-note">이번 모집에는 함께하지 못하게 됐어요</span>'; right = '<a class="btn" href="#board">다른 글 보기</a>';
     } else if (st !== 'open') {
       left = share; right = '<button type="button" class="btn btn-primary" disabled>' + R.STATUS[st] + '</button>';
+    } else if (!u.signedIn) {
+      left = share; right = '<a class="btn btn-primary" href="#login?next=post-' + esc(p.id) + '">로그인하고 ' + (p.joinMode === 'instant' ? '참가하기' : '신청하기') + '</a>';
     } else {
       left = share; right = '<button type="button" class="btn btn-primary" data-action="open-apply">' + (p.joinMode === 'instant' ? '참가하기' : '신청하기') + '</button>';
     }
@@ -1568,18 +1859,18 @@ body.has-bar .foot { padding-bottom: 120px; }
     openSheet('<h2 id="sheet-title">' + (p.joinMode === 'instant' ? '바로 참가하기' : '참가 신청하기') + '</h2>'
       + '<p class="sheet-sub">' + esc(R.postTitle(p)) + ' · ' + R.RULES[p.jobRule].label + '</p>'
       + '<form id="apply-form" class="form tight" novalidate>'
-      + '<div class="field"><label for="a-nick">닉네임</label><input id="a-nick" name="nick" maxlength="10" placeholder="예: 면접왕…" value="' + esc(u.nick || '') + '" autocomplete="off" spellcheck="false"></div>'
+      + '<p class="as-who">' + esc(u.nick) + ' 닉네임으로 신청해요.</p>'
       + '<div class="field"><label for="a-job">내 직무</label>' + jobSelect('a-job', u.job) + '</div>'
       + '<div class="field"><label for="a-intro">한 줄 소개 <span class="opt">(선택)</span></label><input id="a-intro" name="intro" maxlength="60" placeholder="예: 생산라인 실습 경험 있어요…" autocomplete="off"></div>'
       + '<p class="check-line" id="a-check" aria-live="polite"></p>'
       + '<p class="hint">실명·연락처·학교명은 적지 마세요.</p>'
       + '<div class="sheet-actions"><button type="button" class="btn" data-action="close-sheet">닫기</button>'
       + '<button type="submit" class="btn btn-primary" id="a-submit">' + verb + '</button></div>'
-      + '</form>', 'a-nick');
+      + '</form>', 'a-job');
     updateApplyCheck(p);
   }
   function applyForm() {
-    return { nick: $('#a-nick').value, job: readJob('a-job'), intro: $('#a-intro').value };
+    return { nick: S.me().nick, job: readJob('a-job'), intro: $('#a-intro').value };
   }
   function updateApplyCheck(p) {
     const el = $('#a-check');
@@ -1604,6 +1895,7 @@ body.has-bar .foot { padding-bottom: 120px; }
     btn.disabled = true;
     S.apply(p.id, applyForm()).then(function (r) {
       btn.disabled = false;
+      if (r.login) { closeSheet(); go('login?next=post-' + p.id); toast(r.reason); return; }
       if (!r.ok) {
         const el = $('#a-check');
         el.className = 'check-line bad';
@@ -1644,9 +1936,249 @@ body.has-bar .foot { padding-bottom: 120px; }
     } catch (e) { fallback(); }
   }
 
+  /* ---------- 로그인 · 가입 ---------- */
+  function safeNext(n) {
+    n = String(n || '');
+    return /^(board|me|jobs|about|chat|new(\?company=[^&#]{0,90})?|(post|chat)-[a-z0-9]{4,16})$/.test(n) ? n : 'board';
+  }
+  function guestActivity() {
+    const u = S.me();
+    if (!u.uid || !u.anon) return null;
+    const ps = S.posts();
+    const hosting = ps.filter(function (p) { return p.hostId === u.uid; }).length;
+    const joined = ps.filter(function (p) { return p.hostId !== u.uid && (R.memberOf(p, u.uid) || R.applicationOf(p, u.uid)); }).length;
+    return hosting || joined ? { hosting: hosting, joined: joined } : null;
+  }
+  const AUTH_WHY = {
+    me: '내 활동을 보려면 로그인해 주세요.',
+    new: '모집 글을 쓰려면 로그인해 주세요.',
+    post: '신청하려면 로그인해 주세요.',
+    chat: '메시지를 보려면 로그인해 주세요.'
+  };
+  function field(id, label, attrs, hint) {
+    return '<div class="field"><label for="' + id + '">' + label + '</label><input id="' + id + '" ' + attrs + '>'
+      + (hint ? '<p class="hint">' + hint + '</p>' : '') + '<p class="err" data-err="' + id.replace(/^[a-z]+-/, '') + '"></p></div>';
+  }
+  function renderAuth(mode, next) {
+    next = safeNext(next);
+    const signup = mode === 'signup';
+    const why = AUTH_WHY[next.replace(/[-?].*$/, '')] || '';
+    const g = guestActivity();
+    const q = next === 'board' ? '' : '?next=' + encodeURIComponent(next);
+    let carry = '';
+    if (g) {
+      const parts = [];
+      if (g.hosting) parts.push('모집 글 ' + g.hosting + '개');
+      if (g.joined) parts.push('신청 ' + g.joined + '개');
+      carry = signup
+        ? '<p class="note ok">이 브라우저에서 가입 전에 쓴 ' + parts.join(', ') + '는 가입하면 새 계정으로 그대로 옮겨져요.</p>'
+        : '<p class="note">이 브라우저에서 가입 전에 쓴 ' + parts.join(', ') + '가 있어요. 이미 있는 아이디로 로그인하면 옮겨지지 않아요. 옮기려면 <a href="#signup' + q + '">새로 가입</a>해 주세요.</p>';
+    }
+    view.className = 'wrap narrow';
+    view.innerHTML = '<div class="auth">'
+      + '<div class="auth-tabs" role="tablist" aria-label="로그인 또는 가입">'
+      + '<a role="tab" href="#login' + q + '"' + (signup ? '' : ' aria-selected="true" class="on"') + '>로그인</a>'
+      + '<a role="tab" href="#signup' + q + '"' + (signup ? ' aria-selected="true" class="on"' : '') + '>가입하기</a></div>'
+      + '<form id="auth-form" class="form" data-mode="' + mode + '" data-next="' + esc(next) + '" novalidate>'
+      + '<h1>' + (signup ? '면스방 가입하기' : '면스방 로그인') + '</h1>'
+      + '<p class="lead">' + (why ? esc(why) + ' ' : '') + (signup ? '아이디와 비밀번호만 정하면 바로 가입돼요. 메일이나 전화번호는 받지 않아요.' : '가입한 아이디와 비밀번호를 적어 주세요.') + '</p>'
+      + carry
+      + field('u-username', '아이디', 'name="username" maxlength="16" autocomplete="username" autocapitalize="none" spellcheck="false" inputmode="email" placeholder="예: myeon_123…"',
+        signup ? '영어 소문자, 숫자, 밑줄(_)로 4~16자' : '')
+      + (signup ? field('u-nick', '닉네임', 'name="nick" maxlength="10" autocomplete="nickname" spellcheck="false" placeholder="예: 면접왕…"', '모집 글과 신청에 보이는 이름이에요. 2~10자') : '')
+      + field('u-password', '비밀번호', 'name="password" type="password" maxlength="64" autocomplete="' + (signup ? 'new-password' : 'current-password') + '"',
+        signup ? '영어와 숫자를 섞어 8자 이상' : '')
+      + (signup ? field('u-password2', '비밀번호 확인', 'name="password2" type="password" maxlength="64" autocomplete="new-password"', '') : '')
+      + '<label class="check show-pw" for="u-show"><input id="u-show" type="checkbox"> 비밀번호 보기</label>'
+      + (signup ? '<p class="note warn">메일을 받지 않아서 비밀번호를 잊으면 찾을 수 없어요. 꼭 기억해 두세요.</p>' : '')
+      + '<p class="check-line bad" id="auth-msg" aria-live="polite"></p>'
+      + '<div class="submit-bar"><button class="btn btn-primary btn-wide" type="submit">' + (signup ? '가입하기' : '로그인') + '</button></div>'
+      + '<p class="auth-switch">' + (signup ? '이미 가입했나요? <a href="#login' + q + '">로그인</a>' : '처음이신가요? <a href="#signup' + q + '">가입하기</a>') + '</p>'
+      + '</form></div>';
+  }
+  function submitAuth(form) {
+    const signup = form.dataset.mode === 'signup';
+    const next = safeNext(form.dataset.next);
+    const val = function (id) { const el = $('#' + id); return el ? el.value : ''; };
+    const f = { username: val('u-username'), password: val('u-password'), password2: val('u-password2'), nick: val('u-nick') };
+    const msg = $('#auth-msg');
+    msg.textContent = '';
+    if (signup) {
+      const v = R.validateSignup(f);
+      if (!v.ok) { showErrors(form, v.errors); return; }
+    } else {
+      showErrors(form, {});
+      if (!f.username.trim() || !f.password) {
+        const e = {};
+        if (!f.username.trim()) e.username = '아이디를 적어 주세요.';
+        if (!f.password) e.password = '비밀번호를 적어 주세요.';
+        showErrors(form, e);
+        return;
+      }
+    }
+    showErrors(form, {});
+    const btn = $('button[type="submit"]', form);
+    btn.disabled = true;
+    btn.textContent = signup ? '가입하는 중…' : '로그인하는 중…';
+    (signup ? S.signUp(f) : S.signIn(f)).then(function (r) {
+      btn.disabled = false;
+      btn.textContent = signup ? '가입하기' : '로그인';
+      if (!r.ok) {
+        if (r.errors) showErrors(form, r.errors);
+        else { msg.textContent = r.reason; const pw = $('#u-password'); if (pw) { pw.value = ''; pw.focus(); } }
+        return;
+      }
+      const u = S.me();
+      toast(signup ? u.nick + '님, 가입했어요.' + (r.linked ? ' 쓰던 글도 그대로 옮겼어요.' : '') : u.nick + '님, 반가워요.');
+      go(next);
+    });
+  }
+  function renderAuthLink() {
+    const a = $('#auth-link');
+    if (!a) return;
+    const u = S.me();
+    a.hidden = !!u.signedIn;
+  }
+
+  /* ---------- 메시지 ---------- */
+  const TIME = (typeof Intl !== 'undefined') ? new Intl.DateTimeFormat('ko', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' }) : null;
+  function clock(ts) {
+    if (TIME) return TIME.format(new Date(ts));
+    const d = new Date(ts + 9 * 3600000);
+    return d.getUTCHours() + ':' + String(d.getUTCMinutes()).padStart(2, '0');
+  }
+  function linkify(escaped) {
+    return escaped.replace(/https?:\/\/[^\s<]+/g, function (u) {
+      return '<a href="' + u + '" target="_blank" rel="noopener noreferrer nofollow">' + u + '</a>';
+    });
+  }
+  function anyUnread() {
+    if (!S.rooms || !S.me().signedIn) return false;
+    return S.rooms().some(function (r) { return S.unread(r.post.id); });
+  }
+  function renderChatDot() {
+    const a = $('[data-tab="chat"]');
+    if (!a) return;
+    const on = anyUnread();
+    a.classList.toggle('has-dot', on);
+    a.setAttribute('aria-label', on ? '메시지, 새 메시지 있음' : '메시지');
+  }
+  function renderChatList() {
+    const u = S.me();
+    if (!u.signedIn) { renderAuth('login', 'chat'); return; }
+    const now = Date.now();
+    const rooms = S.rooms().sort(function (a, b) {
+      return (b.last ? b.last.at : b.post.createdAt) - (a.last ? a.last.at : a.post.createdAt);
+    });
+    view.innerHTML = '<h1 class="page-h">메시지</h1>'
+      + '<p class="lead chat-lead">참가 중인 스터디마다 채팅방이 있어요. 참가자만 볼 수 있어요.</p>'
+      + (rooms.length ? '<ul class="rooms">' + rooms.map(function (r) {
+        const p = r.post;
+        const unread = S.unread(p.id);
+        const last = r.last;
+        const preview = last === undefined ? '불러오는 중…' : last ? (last.uid === u.uid ? '나: ' : last.nick + ': ') + last.text : '아직 대화가 없어요. 먼저 인사해 보세요.';
+        return '<li><a class="room-row' + (unread ? ' unread' : '') + '" href="#chat-' + esc(p.id) + '">'
+          + '<span class="avatar" aria-hidden="true">' + esc(initial(p.company)) + '</span>'
+          + '<span class="rr-main"><span class="rr-top"><b>' + esc(p.company) + '</b><span class="rr-sub">' + esc(ticketTitle(p)) + ' · ' + p.members.length + '명</span></span>'
+          + '<span class="rr-last">' + esc(preview) + '</span></span>'
+          + '<span class="rr-side">' + (last ? '<span class="rr-time">' + esc(ago(last.at, now)) + '</span>' : '')
+          + (unread ? '<span class="rr-dot"><span class="sr">새 메시지</span></span>' : '') + '</span></a></li>';
+      }).join('') + '</ul>'
+        : '<div class="empty"><p class="empty-t">참가 중인 스터디가 없어요.</p><p>모집 글에 참가하거나 직접 모집하면 여기서 대화할 수 있어요.</p><a class="btn btn-primary" href="#board">모집 글 보기</a></div>');
+  }
+
+  function renderRoom() {
+    const id = ui.postId;
+    const u = S.me();
+    if (!u.signedIn) { renderAuth('login', 'chat-' + id); return; }
+    const p = S.post(id);
+    if (!p && S.watch && S.watch(id) === 'loading') {
+      view.innerHTML = '<a class="back" href="#chat">← 메시지</a><p class="loading">채팅방을 불러오는 중이에요…</p>';
+      return;
+    }
+    if (!p || !R.memberOf(p, u.uid)) {
+      S.closeRoom();
+      view.innerHTML = '<a class="back" href="#chat">← 메시지</a><div class="empty"><p class="empty-t">' + (p ? '참가자만 들어올 수 있는 채팅방이에요.' : '채팅방을 찾을 수 없어요.') + '</p>'
+        + '<p>' + (p ? '모집에 참가하면 대화할 수 있어요.' : '방장이 모집 글을 지웠어요.') + '</p>'
+        + (p ? '<a class="btn btn-primary" href="#post-' + esc(p.id) + '">모집 글 보기</a>' : '<a class="btn" href="#chat">메시지로 돌아가기</a>') + '</div>';
+      renderActionBar(null);
+      return;
+    }
+    S.openRoom(id);
+    if (!$('#msgs') || view.dataset.room !== id) {
+      view.dataset.room = id;
+      view.innerHTML = '<div class="room-head"><a class="back" href="#chat">← 메시지</a>'
+        + '<div class="rh-main"><h1 class="rh-title">' + esc(p.company) + ' <span>' + esc(ticketTitle(p)) + '</span></h1>'
+        + '<p class="rh-sub" id="room-who"></p></div>'
+        + '<a class="link" href="#post-' + esc(p.id) + '">모집 글</a></div>'
+        + '<p class="room-note">이 방은 참가자만 볼 수 있어요. 나가거나 내보내지면 더는 볼 수 없어요.</p>'
+        + '<ol class="msgs" id="msgs" aria-live="polite" aria-label="메시지"></ol>';
+      const bar = $('#actionbar');
+      bar.innerHTML = '<form id="chat-form" class="composer" novalidate>'
+        + '<label class="sr" for="c-text">메시지</label>'
+        + '<textarea id="c-text" name="text" rows="1" maxlength="500" placeholder="메시지 보내기…" autocomplete="off"></textarea>'
+        + '<button type="submit" class="btn btn-primary" id="c-send">보내기</button></form>';
+      bar.hidden = false;
+      document.body.classList.add('has-bar', 'in-room');
+      updateRoom(true);
+    } else {
+      updateRoom(false);
+    }
+  }
+  function updateRoom(first) {
+    const id = ui.postId;
+    const box = $('#msgs');
+    const p = S.post(id);
+    if (!box || !p) return;
+    const u = S.me();
+    $('#room-who').textContent = p.members.map(function (m) { return m.nick; }).join(', ') + ' · ' + p.members.length + '명';
+    const st = S.roomState(id);
+    const nearBottom = first || (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 120);
+    let html = '';
+    if (st.error) html = '<li class="msg-info">' + esc(st.error) + '</li>';
+    else if (st.loading) html = '<li class="msg-info">메시지를 불러오는 중이에요…</li>';
+    else if (!st.list.length) html = '<li class="msg-info">아직 대화가 없어요. 먼저 인사해 보세요.</li>';
+    else {
+      let lastDay = '', lastUid = '';
+      st.list.forEach(function (m) {
+        const day = R.todayKST(m.at);
+        if (day !== lastDay) { html += '<li class="msg-day"><span>' + esc(R.dateLabel(day)) + '</span></li>'; lastDay = day; lastUid = ''; }
+        const mine = m.uid === u.uid;
+        const head = !mine && m.uid !== lastUid;
+        html += '<li class="msg' + (mine ? ' mine' : '') + (head ? ' head' : '') + '">'
+          + (head ? '<span class="msg-nick">' + esc(m.nick) + '</span>' : '')
+          + '<span class="msg-line"><span class="bubble">' + linkify(esc(m.text)) + '</span><time class="msg-time">' + esc(clock(m.at)) + '</time></span></li>';
+        lastUid = m.uid;
+      });
+    }
+    if (box.dataset.html !== html) {
+      box.innerHTML = html;
+      box.dataset.html = html;
+      if (nearBottom) window.scrollTo(0, document.documentElement.scrollHeight);
+    }
+    if (!document.hidden) S.markRead(id);
+    renderChatDot();
+  }
+  function sendChat() {
+    const ta = $('#c-text');
+    const btn = $('#c-send');
+    const text = ta.value;
+    if (!text.trim()) { ta.focus(); return; }
+    btn.disabled = true;
+    S.send(ui.postId, text).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { toast(r.reason); return; }
+      ta.value = '';
+      ta.style.height = '';
+      ta.focus();
+      window.scrollTo(0, document.documentElement.scrollHeight);
+    });
+  }
+
   /* ---------- 내 활동 ---------- */
   function renderMe() {
     const u = S.me();
+    if (!u.signedIn) { renderAuth('login', 'me'); return; }
     const posts = S.posts().sort(function (a, b) { return b.createdAt - a.createdAt; });
     const hosting = posts.filter(function (p) { return p.hostId === u.uid; });
     const joined = posts.filter(function (p) { return p.hostId !== u.uid && (R.memberOf(p, u.uid) || R.applicationOf(p, u.uid)); });
@@ -1660,7 +2192,10 @@ body.has-bar .foot { padding-bottom: 120px; }
       const k = p.applicants.filter(function (a) { return a.status === 'pending'; }).length;
       return k ? '<span class="chip wait">신청 ' + k + '명 대기</span>' : '';
     };
-    view.innerHTML = '<h1 class="page-h">내 활동</h1>'
+    view.innerHTML = '<div class="me-head"><h1 class="page-h">내 활동</h1>'
+      + '<div class="account"><span class="avatar" aria-hidden="true">' + esc(initial(u.nick)) + '</span>'
+      + '<span class="acc-main"><b>' + esc(u.nick) + '</b><span class="acc-id" translate="no">@' + esc(u.username) + '</span></span>'
+      + '<button type="button" class="btn btn-small" data-action="sign-out">로그아웃</button></div></div>'
       + '<section class="d-sec"><h2>내가 올린 모집 <span class="num">' + hosting.length + '</span></h2>'
       + (hosting.length ? '<ol class="tickets">' + hosting.map(function (p) { return ticket(p, waitChip(p)); }).join('') + '</ol>'
         : '<p class="muted">아직 올린 모집이 없어요. <a href="#new">모집 글 쓰기</a></p>') + '</section>'
@@ -1754,16 +2289,17 @@ body.has-bar .foot { padding-bottom: 120px; }
   function renderAbout() {
     view.innerHTML = '<a class="back" href="#board">← 모집 글</a><h1 class="page-h">이용 안내</h1>'
       + '<section class="detail prose">'
-      + '<h2>면스방은</h2><p>서류 합격 뒤 같은 회사 면접을 앞둔 사람끼리 면접 스터디를 모집하고 신청하는 곳이에요. 가입 없이 닉네임만으로 써요.</p>'
+      + '<h2>면스방은</h2><p>서류 합격 뒤 같은 회사 면접을 앞둔 사람끼리 면접 스터디를 모집하고 신청하는 곳이에요. 글은 누구나 볼 수 있고, 글쓰기와 신청은 아이디로 가입하면 할 수 있어요.</p>'
       + '<h2>저장하는 정보</h2><ul>'
       + '<li>모집 글: 회사, 직무, 전형, 면접일, 진행 방식, 정원, 소개</li>'
       + '<li>참가·신청: 닉네임, 직무, 한 줄 소개</li>'
-      + '<li>이 브라우저를 구분하는 무작위 번호 (가입 대신 쓰는 익명 로그인)</li></ul>'
+      + '<li>계정: 아이디, 닉네임, 비밀번호 (비밀번호는 Firebase가 암호화해서 보관하고, 운영자도 볼 수 없어요)</li></ul>'
       + '<p>실명, 전화번호, 이메일, 학교는 받지 않아요. 글에 전화번호나 이메일이 있으면 올라가지 않아요.</p>'
+      + '<h2>비밀번호를 잊었다면</h2><p>메일을 받지 않아서 비밀번호를 찾아 드릴 수 없어요. 새 아이디로 다시 가입해 주세요.</p>'
       + '<h2>누가 볼 수 있나요</h2><p>모집 글과 참가자·신청자의 닉네임, 직무, 한 줄 소개는 사이트에 들어온 누구나 볼 수 있어요. 그래서 나를 알아볼 수 있는 내용은 적지 마세요.</p>'
       + '<h2>채용 일정은</h2><p>공개된 채용 공고문을 보고 사람이 정리한 거예요. 회사 사정으로 바뀔 수 있으니 지원하기 전에 꼭 원문 링크로 확인하세요.</p>'
       + '<h2>지우기</h2><p>방장은 언제든 글을 지울 수 있고, 지우면 참가자·신청 기록도 함께 사라져요. 참가자는 언제든 나갈 수 있고, 신청자는 신청을 취소할 수 있어요.</p>'
-      + '<h2>같은 브라우저로 써 주세요</h2><p>가입이 없어서 다른 휴대폰이나 다른 브라우저로 들어오면 다른 사람으로 보여요. 카카오톡에서 링크를 열면 바깥 브라우저로 옮겨서 열어요.</p>'
+      + '<h2>다른 기기에서도</h2><p>같은 아이디로 로그인하면 휴대폰과 컴퓨터 어디서든 내 글과 신청을 그대로 이어서 볼 수 있어요.</p>'
       + '</section>';
   }
 
@@ -1793,7 +2329,14 @@ body.has-bar .foot { padding-bottom: 120px; }
       const company = cut >= 0 ? (new URLSearchParams(raw.slice(cut + 1)).get('company') || '').trim().slice(0, 30) : '';
       return company ? { route: 'new', company: company } : { route: 'new' };
     }
+    if (h === 'login' || h === 'signup') {
+      const next = cut >= 0 ? (new URLSearchParams(raw.slice(cut + 1)).get('next') || '') : '';
+      return { route: h, next: safeNext(next) };
+    }
     if (h === 'jobs') return { route: 'jobs' };
+    if (h === 'chat') return { route: 'chat' };
+    const c = /^chat-([a-z0-9]{4,16})$/.exec(h);
+    if (c) return { route: 'room', postId: c[1] };
     if (h === 'me') return { route: 'me' };
     if (h === 'about') return { route: 'about' };
     const m = /^post-([a-z0-9]{4,16})$/.exec(h);
@@ -1806,10 +2349,13 @@ body.has-bar .foot { padding-bottom: 120px; }
   }
   function render() {
     renderDemoBar();
+    renderAuthLink();
+    renderChatDot();
     view.className = 'wrap' + (ui.route === 'board' || ui.route === 'me' ? '' : ' narrow');
+    if (ui.route !== 'room') { delete view.dataset.room; document.body.classList.remove('in-room'); if (S.closeRoom) S.closeRoom(); }
     if (ui.route !== 'new') ui.dirty = false;
     $$('[data-tab]').forEach(function (a) {
-      if (a.dataset.tab === ui.route) a.setAttribute('aria-current', 'page');
+      if (a.dataset.tab === ui.route || (a.dataset.tab === 'chat' && ui.route === 'room')) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
     });
     if (ui.route !== 'post') renderActionBar(null);
@@ -1823,10 +2369,13 @@ body.has-bar .foot { padding-bottom: 120px; }
     else if (ui.route === 'about') renderAbout();
     else if (ui.route === 'jobs') renderJobs();
     else if (ui.route === 'post') renderDetail();
+    else if (ui.route === 'login' || ui.route === 'signup') renderAuth(ui.route, ui.next);
+    else if (ui.route === 'chat') renderChatList();
+    else if (ui.route === 'room') renderRoom();
     else { renderBoard(); syncBoardUrl(); }
   }
   function route() {
-    const r = parseHash();
+    let r = parseHash();
     /* 쓰던 모집 글이 있으면 나가기 전에 한 번 묻는다 */
     if (ui.route === 'new' && r.route !== 'new' && ui.dirty) {
       const target = location.hash || '#board';
@@ -1837,11 +2386,24 @@ body.has-bar .foot { padding-bottom: 120px; }
     }
     if (r.rule) { ui.filters.rule = r.rule; ui.filters.q = r.q; saveFilters(); }
     ui.prefillCompany = r.company || '';
+    /* 글쓰기는 로그인한 사람만: 로그인 화면으로 보냈다가 끝나면 돌아온다 */
+    if (r.route === 'new' && !S.me().signedIn) {
+      const back = 'new' + (r.company ? '?company=' + encodeURIComponent(r.company) : '');
+      history.replaceState(null, '', '#login?next=' + encodeURIComponent(back));
+      r = { route: 'login', next: back };
+    }
+    /* 이미 로그인했으면 로그인 화면 대신 가려던 곳으로 */
+    if ((r.route === 'login' || r.route === 'signup') && S.me().signedIn) {
+      history.replaceState(null, '', '#' + r.next);
+      r = parseHash();
+    }
+    ui.next = r.next || 'board';
     ui.route = r.route;
     ui.postId = r.postId || null;
     closeSheet();
-    render();
+    if (r.route === 'room') delete view.dataset.room;
     window.scrollTo(0, 0);
+    render();
   }
 
   /* ---------- 이벤트 ---------- */
@@ -1902,6 +2464,10 @@ body.has-bar .foot { padding-bottom: 120px; }
         });
         break;
       case 'reload': location.reload(); break;
+      case 'sign-out':
+        confirmSheet({ title: '로그아웃할까요?', body: '다시 쓰려면 아이디와 비밀번호로 로그인해야 해요.', ok: '로그아웃' })
+          .then(function (yes) { if (yes) S.signOut().then(function () { toast('로그아웃했어요.'); go('board'); }); });
+        break;
       case 'skip': view.setAttribute('tabindex', '-1'); view.focus(); break;
       case 'to-list': {
         const h = $('#list-h');
@@ -1940,7 +2506,6 @@ body.has-bar .foot { padding-bottom: 120px; }
     const t = e.target;
     if (t.id === 'demo-user') {
       S.switchUser(t.value);
-      if (ui.route === 'new') renderNew();
       toast('지금 사용자: ' + userLabel(S.me()));
       return;
     }
@@ -1951,23 +2516,42 @@ body.has-bar .foot { padding-bottom: 120px; }
     if (t.name === 'mode' && t.closest('#new-form')) $('#place-field').hidden = t.value !== 'offline';
     if (t.id === 'n-date-unknown') { $('#n-date').disabled = t.checked; if (t.checked) $('#n-date').value = ''; }
     if (t.closest('#apply-form')) { const p = S.post(ui.postId); if (p) updateApplyCheck(p); }
+    if (t.id === 'u-show') $$('#auth-form input[name^="password"]').forEach(function (i) { i.type = t.checked ? 'text' : 'password'; });
   });
 
   document.addEventListener('input', function (e) {
     const t = e.target;
     if (t.id === 'f-q') { ui.filters.q = t.value; saveFilters(); renderList(); syncBoardUrl(); }
     if (t.id === 'n-intro') $('#n-intro-count').textContent = t.value.length + '/300';
+    if (t.id === 'c-text') { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 140) + 'px'; }
     if (t.closest && t.closest('#new-form')) ui.dirty = true;
     if (t.closest && t.closest('#apply-form')) { const p = S.post(ui.postId); if (p) updateApplyCheck(p); }
+    if (t.closest && t.closest('#auth-form')) {
+      if (t.id === 'u-username' && t.value !== t.value.toLowerCase()) t.value = t.value.toLowerCase();
+      const f = t.closest('.field');
+      const err = f && $('[data-err]', f);
+      if (err && err.textContent) { err.textContent = ''; t.removeAttribute('aria-invalid'); t.removeAttribute('aria-describedby'); }
+      const m = $('#auth-msg'); if (m) m.textContent = '';
+    }
   });
 
   document.addEventListener('submit', function (e) {
     e.preventDefault();
     if (e.target.id === 'new-form') submitNew(e.target);
     else if (e.target.id === 'apply-form') submitApply();
+    else if (e.target.id === 'auth-form') submitAuth(e.target);
+    else if (e.target.id === 'chat-form') sendChat();
   });
 
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeSheet();
+    /* 채팅: 컴퓨터에서는 Enter로 보내고 Shift+Enter로 줄바꿈. 한글 입력 중(조합 중)에는 보내지 않는다 */
+    if (e.target && e.target.id === 'c-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) {
+      const fine = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+      if (fine) { e.preventDefault(); sendChat(); }
+    }
+  });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && ui.route === 'room') updateRoom(false); });
   document.addEventListener('toggle', function (e) {
     if (e.target && e.target.matches && e.target.matches('details.done')) ui.doneOpen = e.target.open;
   }, true);
@@ -1976,8 +2560,17 @@ body.has-bar .foot { padding-bottom: 120px; }
     if (ui.route === 'new' && ui.dirty) { e.preventDefault(); e.returnValue = ''; }
   });
 
+  let lastAuth = null;
   S.subscribe(function () {
     renderDemoBar();
+    renderAuthLink();
+    /* 로그인 상태가 바뀌면 (다른 탭에서 로그아웃 등) 지금 화면을 다시 그린다 */
+    const now = S.me().uid + ':' + S.me().signedIn;
+    if (lastAuth !== null && now !== lastAuth && ui.route !== 'login' && ui.route !== 'signup') { lastAuth = now; route(); return; }
+    lastAuth = now;
+    renderChatDot();
+    if (ui.route === 'chat') renderChatList();
+    else if (ui.route === 'room') renderRoom();
     if (ui.route === 'board') renderList();
     else if (ui.route === 'post') renderDetail();
     else if (ui.route === 'me') renderMe();
@@ -1985,6 +2578,7 @@ body.has-bar .foot { padding-bottom: 120px; }
   });
 
   S.init().then(function () {
+    lastAuth = S.me().uid + ':' + S.me().signedIn;
     window.addEventListener('hashchange', route);
     route();
     /* 첫 화면 머리글은 처음 열 때 한 번만 올라오게 (taste: hero enters once) */
