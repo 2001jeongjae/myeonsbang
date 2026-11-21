@@ -577,6 +577,17 @@ body.in-room main { padding-bottom: 96px; }
   .jchip { min-height: 40px; }
 }
 
+/* 마이페이지 프로필: 지원 직무·학과·학년 */
+.pc-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 16px; margin: 12px 0 0; }
+.pc-facts div { min-width: 0; }
+.pc-facts dt { font-size: 13px; color: var(--muted); }
+.pc-facts dd { margin: 2px 0 0; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.pc-facts dd.muted { font-weight: 400; font-size: 14px; }
+@media (max-width: 480px) { .pc-facts { grid-template-columns: 1fr 1fr; } }
+.field-row { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; }
+@media (max-width: 480px) { .field-row { grid-template-columns: 1fr; } }
+.tag-prof { font-size: 14px; color: var(--muted); }
+
 </style>
 </head>
 <body>
@@ -585,12 +596,12 @@ body.in-room main { padding-bottom: 96px; }
 <header class="top">
   <div class="top-in">
     <a class="logo" href="#board" aria-label="면스방 처음 화면" translate="no"><span class="logo-mark" aria-hidden="true">면</span><span class="logo-text">면스방</span></a>
-    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a id="me-link" href="#me" data-tab="me" aria-label="마이페이지"><span class="wide-only">마이페이지</span><span class="narrow-only" aria-hidden="true">MY</span></a><a href="#chat" data-tab="chat">메시지</a><a class="nav-wide" href="#jobs" data-tab="jobs">채용 일정</a><a class="nav-wide" href="#about" data-tab="about">이용 안내</a></nav>
+    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a id="me-link" href="#me" data-tab="me" aria-label="마이페이지"><span class="wide-only">마이페이지</span><span class="narrow-only" aria-hidden="true">MY</span></a><a href="#chat" data-tab="chat">메시지</a><a class="nav-wide" href="#jobs" data-tab="jobs">채용 일정</a></nav>
     <a class="btn btn-primary btn-new" href="#new"><span class="wide-only">모집 </span>글 쓰기</a>
   </div>
 </header>
 <main id="view" class="wrap"><p class="loading">불러오는 중이에요…</p></main>
-<footer class="foot wrap"><p>면스방 · <a href="#jobs">채용 일정</a> · <a href="#about">이용 안내</a> · 실명·연락처·학교명은 적지 마세요.</p></footer>
+<footer class="foot wrap"><p>면스방 · <a href="#jobs">채용 일정</a> · 실명·연락처·학교명은 적지 마세요.</p></footer>
 <div id="actionbar" class="actionbar" hidden></div>
 <div id="sheet-root" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -779,8 +790,23 @@ body.in-room main { padding-bottom: 96px; }
     if (n) errors.nick = n;
     return { ok: !Object.keys(errors).length, errors: errors };
   }
+  /* 프로필의 학과·학년 (선택). 학교 이름은 받지 않는다 */
+  const GRADES = ['1학년', '2학년', '3학년', '4학년', '졸업 예정', '졸업', '대학원'];
+  function majorIssue(major) {
+    const s = String(major || '').trim();
+    if (s.length > 20) return '학과는 20자 안으로 적어 주세요.';
+    if (/대학교|univ/i.test(s)) return '학교 이름 말고 학과만 적어 주세요.';
+    return privacyIssue(s);
+  }
+  /* 사람을 짧게 소개하는 한 줄: "기계공학과 · 4학년" */
+  function profileLine(e) {
+    return [e && e.major, e && e.grade].filter(Boolean).join(' · ');
+  }
   function validateProfile(f) {
     const errors = {};
+    const mj = majorIssue(f.major);
+    if (mj) errors.major = mj;
+    if (f.grade && GRADES.indexOf(f.grade) < 0) errors.grade = '학년을 다시 골라 주세요.';
     const n = nickIssue(f.nick);
     if (n) errors.nick = n;
     const job = String(f.job || '').trim();
@@ -926,6 +952,7 @@ body.in-room main { padding-bottom: 96px; }
     todayKST: todayKST, addDays: addDays, daysUntil: daysUntil, ddayLabel: ddayLabel, dateLabel: dateLabel, isYmd: isYmd,
     statusOf: statusOf, memberOf: memberOf, applicationOf: applicationOf,
     privacyIssue: privacyIssue, nickIssue: nickIssue,
+    GRADES: GRADES, majorIssue: majorIssue, profileLine: profileLine,
     usernameIssue: usernameIssue, passwordIssue: passwordIssue, validateSignup: validateSignup, validateProfile: validateProfile,
     normUsername: normUsername, idToEmail: idToEmail, emailToId: emailToId, ruleCheck: ruleCheck,
     checkApply: checkApply, checkAccept: checkAccept, uniqueNick: uniqueNick, validatePost: validatePost,
@@ -1284,10 +1311,15 @@ body.in-room main { padding-bottom: 96px; }
     if (p.hostId !== uid) return '방장만 할 수 있어요.';
     return null;
   }
-  function entry(nick, job, intro, at) {
+  function entry(nick, job, intro, at, who) {
     const j = R.canonicalJob(job);
-    return { nick: nick, job: j, jobKey: R.jobKey(j), intro: String(intro || '').trim().slice(0, 60), at: at };
+    const e = { nick: nick, job: j, jobKey: R.jobKey(j), intro: String(intro || '').trim().slice(0, 60), at: at };
+    /* 학과·학년은 프로필에 적어 둔 경우에만 같이 보낸다 */
+    if (who && who.major) e.major = String(who.major).slice(0, 20);
+    if (who && who.grade && R.GRADES.indexOf(who.grade) >= 0) e.grade = who.grade;
+    return e;
   }
+  function myProfile() { return { major: (prof.data && prof.data.major) || '', grade: (prof.data && prof.data.grade) || '' }; }
 
   function setUser(u) {
     user = u || null;
@@ -1421,6 +1453,8 @@ body.in-room main { padding-bottom: 96px; }
         nick: (inn && user.displayName) || lsGet(NICK_KEY),
         job: (inn && prof.data && prof.data.job) || lsGet(JOB_KEY),
         intro: (inn && prof.data && prof.data.intro) || '',
+        major: (inn && prof.data && prof.data.major) || '',
+        grade: (inn && prof.data && prof.data.grade) || '',
         joinedAt: inn && user.metadata && user.metadata.creationTime ? Date.parse(user.metadata.creationTime) : 0
       };
     },
@@ -1433,9 +1467,11 @@ body.in-room main { padding-bottom: 96px; }
       const nick = String(f.nick).trim();
       const job = f.job ? R.canonicalJob(f.job) : '';
       const intro = String(f.intro || '').trim();
+      const major = String(f.major || '').trim();
+      const grade = f.grade || '';
       try {
         if (nick !== user.displayName) await authMod.updateProfile(user, { displayName: nick });
-        await fs.setDoc(fs.doc(db, 'users', uid), { nick: nick, job: job, intro: intro, updatedAt: Date.now() });
+        await fs.setDoc(fs.doc(db, 'users', uid), { nick: nick, job: job, intro: intro, major: major, grade: grade, updatedAt: Date.now() });
         lsSet(NICK_KEY, nick);
         if (job) lsSet(JOB_KEY, job);
         emit();
@@ -1595,7 +1631,7 @@ body.in-room main { padding-bottom: 96px; }
       const v = R.validatePost(f, now);
       if (!v.ok) return { ok: false, errors: v.errors };
       const nick = String(f.nick).trim();
-      const host = entry(nick, f.job, '', now);
+      const host = entry(nick, f.job, '', now, myProfile());
       host.role = 'host';
       const data = {
         company: String(f.company).trim(), job: host.job, jobKey: host.jobKey, stage: f.stage,
@@ -1632,7 +1668,7 @@ body.in-room main { padding-bottom: 96px; }
       const chk = R.checkApply(p, uid, f, Date.now());
       if (!chk.ok) return chk;
       const nick = String(f.nick).trim();
-      const e = entry(R.uniqueNick(p, nick), f.job, f.intro, Date.now());
+      const e = entry(R.uniqueNick(p, nick), f.job, f.intro, Date.now(), myProfile());
       const data = {};
       if (p.joinMode === 'instant') { e.role = 'member'; data['members.' + uid] = e; }
       else { e.status = 'pending'; data['applicants.' + uid] = e; }
@@ -1671,7 +1707,7 @@ body.in-room main { padding-bottom: 96px; }
       if (accept) {
         const chk = R.checkAccept(p, ap, Date.now());
         if (!chk.ok) return Promise.resolve(chk);
-        const m = entry(ap.nick, ap.job, ap.intro, Date.now());
+        const m = entry(ap.nick, ap.job, ap.intro, Date.now(), ap);
         m.role = 'member';
         data['applicants.' + who] = fs.deleteField();
         data['members.' + who] = m;
@@ -1687,7 +1723,7 @@ body.in-room main { padding-bottom: 96px; }
       const p = cache.get(id);
       const m = p.members.find(function (x) { return x.uid === who && x.role !== 'host'; });
       if (!m) return Promise.resolve({ ok: false, reason: '참가자를 찾을 수 없어요.' });
-      const gone = entry(m.nick, m.job, m.intro, Date.now());
+      const gone = entry(m.nick, m.job, m.intro, Date.now(), m);
       gone.status = 'rejected';
       const data = {};
       data['members.' + who] = fs.deleteField();
@@ -2054,7 +2090,7 @@ body.in-room main { padding-bottom: 96px; }
   function nameTag(m, extra) {
     return '<li class="person"><span class="avatar" aria-hidden="true">' + esc(initial(m.nick)) + '</span>'
       + '<span class="p-main"><span class="p-name">' + esc(m.nick) + (m.role === 'host' ? ' <span class="tag-host">방장</span>' : '') + '</span>'
-      + '<span class="p-job">' + esc(m.job) + (m.intro ? ' · ' + esc(m.intro) : '') + '</span></span>' + (extra || '') + '</li>';
+      + '<span class="p-job">' + [m.job, R.profileLine(m), m.intro].filter(Boolean).map(esc).join(' · ') + '</span></span>' + (extra || '') + '</li>';
   }
 
   function hostPanel(p, now) {
@@ -2069,6 +2105,7 @@ body.in-room main { padding-bottom: 96px; }
         + pending.map(function (a) {
           const chk = R.checkAccept(p, a, now);
           return '<li class="appl"><div class="appl-who"><span class="tag-nick">' + esc(a.nick) + '</span><span class="tag-job">' + esc(a.job) + '</span>'
+            + (R.profileLine(a) ? '<span class="tag-prof">' + esc(R.profileLine(a)) + '</span>' : '')
             + '<span class="appl-when">' + esc(ago(a.at, now)) + '</span></div>'
             + (a.intro ? '<p class="appl-intro">' + esc(a.intro) + '</p>' : '')
             + (chk.ok ? '' : '<p class="warn">' + esc(chk.reason) + '</p>')
@@ -2200,7 +2237,7 @@ body.in-room main { padding-bottom: 96px; }
     openSheet('<h2 id="sheet-title">' + (p.joinMode === 'instant' ? '바로 참가하기' : '참가 신청하기') + '</h2>'
       + '<p class="sheet-sub">' + esc(R.postTitle(p)) + ' · ' + R.RULES[p.jobRule].label + '</p>'
       + '<form id="apply-form" class="form tight" novalidate>'
-      + '<p class="as-who">' + esc(u.nick) + ' 닉네임으로 신청해요.</p>'
+      + '<p class="as-who">' + esc(u.nick) + ' 닉네임으로 신청해요.' + (R.profileLine(u) ? ' 프로필의 ' + esc(R.profileLine(u)) + '도 함께 보여요.' : '') + '</p>'
       + '<div class="field"><label for="a-job">내 직무</label>' + jobSelect('a-job', u.job) + '</div>'
       + '<div class="field"><label for="a-intro">한 줄 소개 <span class="opt">(선택)</span></label><input id="a-intro" name="intro" maxlength="60" placeholder="예: 생산라인 실습 경험 있어요…" autocomplete="off" value="' + esc(u.intro || '') + '"></div>'
       + '<p class="check-line" id="a-check" aria-live="polite"></p>'
@@ -2280,7 +2317,7 @@ body.in-room main { padding-bottom: 96px; }
   /* ---------- 로그인 · 가입 ---------- */
   function safeNext(n) {
     n = String(n || '');
-    return /^(board|me|profile|jobs|about|chat|new(\?company=[^&#]{0,90})?|(post|chat)-[a-z0-9]{4,16})$/.test(n) ? n : 'board';
+    return /^(board|me|profile|jobs|chat|new(\?company=[^&#]{0,90})?|(post|chat)-[a-z0-9]{4,16})$/.test(n) ? n : 'board';
   }
   function guestActivity() {
     const u = S.me();
@@ -2549,8 +2586,18 @@ body.in-room main { padding-bottom: 96px; }
       + '<div class="field"><span class="label">아이디</span><p class="static" translate="no">@' + esc(u.username) + ' <span class="muted">(바꿀 수 없어요)</span></p></div>'
       + '<div class="field"><label for="p-nick">닉네임</label><input id="p-nick" name="nick" maxlength="10" autocomplete="nickname" spellcheck="false" value="' + esc(u.nick) + '">'
       + '<p class="hint">2~10자</p><p class="err" data-err="nick"></p></div>'
-      + '<div class="field"><label for="p-job">기본 직무 <span class="opt">(선택)</span></label>' + jobSelect('p-job', u.job)
+      + '<div class="field"><label for="p-job">지원 직무 <span class="opt">(선택)</span></label>' + jobSelect('p-job', u.job)
       + '<p class="hint">글쓰기와 신청 화면에 미리 채워져요.</p><p class="err" data-err="job"></p></div>'
+      + '<div class="field-row">'
+      + '<div class="field"><label for="p-major">학과 <span class="opt">(선택)</span></label>'
+      + '<input id="p-major" name="major" maxlength="20" placeholder="예: 기계공학과…" autocomplete="off" value="' + esc(u.major || '') + '">'
+      + '<p class="err" data-err="major"></p></div>'
+      + '<div class="field"><label for="p-grade">학년 <span class="opt">(선택)</span></label>'
+      + '<select id="p-grade" name="grade"><option value="">선택 안 함</option>'
+      + R.GRADES.map(function (g) { return '<option' + (u.grade === g ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('')
+      + '</select><p class="err" data-err="grade"></p></div>'
+      + '</div>'
+      + '<p class="hint">학과·학년은 모집 글을 올리거나 신청할 때 방장과 참가자에게 보여요. 학교 이름은 적지 마세요.</p>'
       + '<div class="field"><label for="p-intro">한 줄 소개 <span class="opt">(선택)</span></label>'
       + '<input id="p-intro" name="intro" maxlength="60" placeholder="예: 생산라인 실습 경험 있어요…" autocomplete="off" value="' + esc(u.intro || '') + '">'
       + '<div class="meta-row"><p class="hint">신청할 때 미리 채워져요. 실명·연락처·학교명은 적지 마세요.</p><span class="counter" id="p-intro-count">' + (u.intro || '').length + '/60</span></div>'
@@ -2568,7 +2615,7 @@ body.in-room main { padding-bottom: 96px; }
       + '</fieldset></form>';
   }
   function submitProfile(form) {
-    const f = { nick: $('#p-nick').value, job: readJob('p-job'), intro: $('#p-intro').value };
+    const f = { nick: $('#p-nick').value, job: readJob('p-job'), major: $('#p-major').value, grade: $('#p-grade').value, intro: $('#p-intro').value };
     const v = R.validateProfile(f);
     showErrors(form, v.errors);
     if (!v.ok) return;
@@ -2619,7 +2666,10 @@ body.in-room main { padding-bottom: 96px; }
       + '<span class="avatar avatar-lg" aria-hidden="true">' + esc(initial(u.nick)) + '</span>'
       + '<div class="pc-main"><p class="pc-name">' + esc(u.nick) + '</p>'
       + '<p class="pc-id" translate="no">@' + esc(u.username) + (since ? ' · ' + esc(since) + ' 가입' : '') + '</p>'
-      + '<p class="pc-tags">' + (u.job ? '<span class="chip">' + esc(u.job) + '</span>' : '<span class="muted">기본 직무를 정하면 글쓰기·신청 때 미리 채워져요.</span>') + '</p>'
+      + '<dl class="pc-facts">'
+      + [['지원 직무', u.job], ['학과', u.major], ['학년', u.grade]].map(function (x) {
+        return '<div><dt>' + x[0] + '</dt><dd' + (x[1] ? '' : ' class="muted"') + '>' + (x[1] ? esc(x[1]) : '아직 안 정했어요') + '</dd></div>';
+      }).join('') + '</dl>'
       + (u.intro ? '<p class="pc-intro">' + esc(u.intro) + '</p>' : '')
       + '</div><div class="pc-act"><a class="btn btn-small" href="#profile">프로필 수정</a>'
       + '<button type="button" class="btn btn-small" data-action="sign-out">로그아웃</button></div></section>'
@@ -2631,7 +2681,6 @@ body.in-room main { padding-bottom: 96px; }
         : '<p class="muted">아직 신청한 모집이 없어요. <a href="#board">모집 글 보기</a></p>') + '</section>';
   }
 
-  /* ---------- 이용 안내 ---------- */
   /* ---------- 채용 일정 ---------- */
   const JOBS = (window.JOBS && window.JOBS.items) || [];
   /* 공공기관 공고는 /api/jobs (잡알리오 API, 서버에서 6시간마다 새로 받음)에서 더 받아 붙인다. 실서비스에서만 */
@@ -2881,22 +2930,6 @@ body.in-room main { padding-bottom: 96px; }
       }).join('') + '</ol></section>';
   }
 
-  function renderAbout() {
-    view.innerHTML = '<a class="back" href="#board">← 모집 글</a><h1 class="page-h">이용 안내</h1>'
-      + '<section class="detail prose">'
-      + '<h2>면스방은</h2><p>서류 합격 뒤 같은 회사 면접을 앞둔 사람끼리 면접 스터디를 모집하고 신청하는 곳이에요. 글은 누구나 볼 수 있고, 글쓰기와 신청은 아이디로 가입하면 할 수 있어요.</p>'
-      + '<h2>저장하는 정보</h2><ul>'
-      + '<li>모집 글: 회사, 직무, 전형, 면접일, 진행 방식, 정원, 소개</li>'
-      + '<li>참가·신청: 닉네임, 직무, 한 줄 소개</li>'
-      + '<li>계정: 아이디, 닉네임, 비밀번호 (비밀번호는 Firebase가 암호화해서 보관하고, 운영자도 볼 수 없어요)</li></ul>'
-      + '<p>실명, 전화번호, 이메일, 학교는 받지 않아요. 글에 전화번호나 이메일이 있으면 올라가지 않아요.</p>'
-      + '<h2>비밀번호를 잊었다면</h2><p>메일을 받지 않아서 비밀번호를 찾아 드릴 수 없어요. 새 아이디로 다시 가입해 주세요.</p>'
-      + '<h2>누가 볼 수 있나요</h2><p>모집 글과 참가자·신청자의 닉네임, 직무, 한 줄 소개는 사이트에 들어온 누구나 볼 수 있어요. 그래서 나를 알아볼 수 있는 내용은 적지 마세요.</p>'
-      + '<h2>채용 일정은</h2><p>대기업·민간 공고는 공개된 공고문을 보고 사람이 정리해요. 공공기관 공고는 기획재정부 잡알리오(공공데이터포털 API)에서 신입이 지원할 수 있는 정규직·무기계약직·청년인턴 공고를 자동으로 받아 와요. 회사 사정으로 바뀔 수 있으니 지원하기 전에 꼭 원문 링크로 확인하세요.</p>'
-      + '<h2>지우기</h2><p>방장은 언제든 글을 지울 수 있고, 지우면 참가자·신청 기록도 함께 사라져요. 참가자는 언제든 나갈 수 있고, 신청자는 신청을 취소할 수 있어요.</p>'
-      + '<h2>다른 기기에서도</h2><p>같은 아이디로 로그인하면 휴대폰과 컴퓨터 어디서든 내 글과 신청을 그대로 이어서 볼 수 있어요.</p>'
-      + '</section>';
-  }
 
   /* ---------- 화면 전환 ---------- */
   function boardHash() {
@@ -2944,7 +2977,6 @@ body.in-room main { padding-bottom: 96px; }
     if (c) return { route: 'room', postId: c[1] };
     if (h === 'me') return { route: 'me' };
     if (h === 'profile') return { route: 'profile' };
-    if (h === 'about') return { route: 'about' };
     const m = /^post-([a-z0-9]{4,16})$/.exec(h);
     if (m) return { route: 'post', postId: m[1] };
     return { route: 'board' };
@@ -2972,7 +3004,6 @@ body.in-room main { padding-bottom: 96px; }
       if (c && ui.prefillCompany) c.value = ui.prefillCompany;
     }
     else if (ui.route === 'me') renderMe();
-    else if (ui.route === 'about') renderAbout();
     else if (ui.route === 'jobs') renderJobs();
     else if (ui.route === 'post') renderDetail();
     else if (ui.route === 'login' || ui.route === 'signup') renderAuth(ui.route, ui.next);

@@ -26,9 +26,15 @@ service cloud.firestore {
     function validEntry(e) {
       return e is map
         && e.keys().hasAll(['nick', 'job', 'jobKey', 'intro', 'at'])
-        && e.keys().hasOnly(['nick', 'job', 'jobKey', 'intro', 'at', 'role', 'status'])
+        && e.keys().hasOnly(['nick', 'job', 'jobKey', 'intro', 'major', 'grade', 'at', 'role', 'status'])
         && str(e.nick, 2, 12) && str(e.job, 1, 20) && str(e.jobKey, 1, 30) && str(e.intro, 0, 60)
+        && (!('major' in e) || str(e.major, 0, 20))
+        && (!('grade' in e) || validGrade(e.grade))
         && e.at is int;
+    }
+
+    function validGrade(g) {
+      return g in ['', '1학년', '2학년', '3학년', '4학년', '졸업 예정', '졸업', '대학원'];
     }
 
     // 같은 직무끼리: 글의 직무와 같아야 한다. 다른 직무끼리: 적어도 방장 직무와는 달라야 한다.
@@ -117,13 +123,16 @@ service cloud.firestore {
             || cancels(uid, before, after) || leaves(uid, before, after));
     }
 
-    // 내 프로필(기본 직무, 한 줄 소개): 나만 읽고 쓴다.
+    // 내 프로필(지원 직무, 학과, 학년, 한 줄 소개): 나만 읽고 쓴다.
+    // 학과·학년은 모집 글에 신청하거나 글을 올릴 때만 그 글의 참가 정보에 복사돼 보인다.
     match /users/{userId} {
       allow read: if signedIn() && request.auth.uid == userId;
       allow create, update: if signedIn() && request.auth.uid == userId
         && request.resource.data.keys().hasAll(['nick', 'job', 'intro', 'updatedAt'])
-        && request.resource.data.keys().hasOnly(['nick', 'job', 'intro', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['nick', 'job', 'intro', 'major', 'grade', 'updatedAt'])
         && str(request.resource.data.nick, 2, 10) && str(request.resource.data.job, 0, 20)
+        && (!('major' in request.resource.data) || str(request.resource.data.major, 0, 20))
+        && (!('grade' in request.resource.data) || validGrade(request.resource.data.grade))
         && str(request.resource.data.intro, 0, 60) && request.resource.data.updatedAt is int;
     }
 
