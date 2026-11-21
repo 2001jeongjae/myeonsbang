@@ -893,6 +893,19 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
 .job-dates dt { flex: none; width: 76px; }
 .job-dates dd { flex: 1; min-width: 0; }
 
+/* 읽음 표시: 말풍선 옆 작은 숫자 (안 읽은 사람 수) */
+.msg-side { display: inline-flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; gap: 0; flex: none; }
+.msg.mine .msg-side { align-items: flex-end; }
+.msg-unread { font-size: 12px; font-weight: 800; line-height: 1.2; color: var(--accent-text); font-variant-numeric: tabular-nums; }
+/* 좁은 화면: 메뉴 네 개 + 글 쓰기가 한 줄에 들어가게 */
+@media (max-width: 479px) {
+  .logo-text { display: none; }
+  .top-in { padding: 0 12px; }
+  .nav a { padding: 0 8px; font-size: 14.5px; }
+  .nav a::after { left: 8px; right: 8px; }
+  .top .btn-new { margin-left: 4px; padding: 0 12px; font-size: 14.5px; }
+}
+
 </style>
 </head>
 <body>
@@ -901,7 +914,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
 <header class="top">
   <div class="top-in">
     <a class="logo" href="#board" aria-label="면스방 처음 화면" translate="no"><span class="logo-mark" aria-hidden="true">면</span><span class="logo-text">면스방</span></a>
-    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a id="me-link" href="#me" data-tab="me" aria-label="마이페이지"><span class="wide-only">마이페이지</span><span class="narrow-only" aria-hidden="true">MY</span></a><a href="#chat" data-tab="chat">메시지</a><a class="nav-wide" href="#jobs" data-tab="jobs">채용 일정</a></nav>
+    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a href="#jobs" data-tab="jobs" aria-label="채용 일정"><span class="wide-only">채용 일정</span><span class="narrow-only" aria-hidden="true">채용</span></a><a href="#chat" data-tab="chat">메시지</a><a id="me-link" href="#me" data-tab="me" aria-label="마이페이지"><span class="wide-only">마이페이지</span><span class="narrow-only" aria-hidden="true">MY</span></a></nav>
     <a class="btn btn-primary btn-new" href="#new"><span class="wide-only">모집 </span>글 쓰기</a>
   </div>
 </header>
@@ -1616,7 +1629,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
   const lastMsg = new Map();      // postId -> 마지막 메시지 | null
   const recentMsgs = new Map();   // postId -> 최근 메시지 10개 (안 읽은 개수 세기용, 10개면 '9+')
   const previewSubs = new Map();  // postId -> 구독 해제 함수
-  let room = { id: null, list: null, error: null, off: null };
+  let room = { id: null, list: null, error: null, off: null, reads: {}, offReads: null, myReadAt: 0, writing: false };
   /* 내 프로필 문서 users/{uid}: 기본 직무, 한 줄 소개 (닉네임은 계정 displayName이 기준) */
   let prof = { uid: null, data: null, off: null };
 
@@ -1747,8 +1760,10 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
   }
   function closeRoom() {
     if (room.off) room.off();
-    room = { id: null, list: null, error: null, off: null };
+    if (room.offReads) room.offReads();
+    room = { id: null, list: null, error: null, off: null, reads: {}, offReads: null, myReadAt: 0, writing: false };
   }
+  function readsCol(id) { return fs.collection(db, 'posts', id, 'reads'); }
   function readKey() { return 'myeonsbang-read-' + uid; }
   function readMap() { try { return JSON.parse(lsGet(readKey()) || '{}') || {}; } catch (e) { return {}; } }
 
@@ -1949,11 +1964,20 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
         room.error = err && err.code === 'permission-denied' ? '이 채팅방은 참가자만 볼 수 있어요.' : '채팅을 불러오지 못했어요. 새로고침해 보세요.';
         emit();
       });
+      /* 읽음 표시: 참가자마다 이 방을 마지막으로 본 시각 */
+      room.offReads = fs.onSnapshot(readsCol(id), function (snap) {
+        if (room.id !== id) return;
+        const r = {};
+        snap.docs.forEach(function (d) { const at = d.data().at; if (typeof at === 'number') r[d.id] = at; });
+        room.reads = r;
+        room.myReadAt = Math.max(room.myReadAt, r[uid] || 0);
+        emit();
+      }, function (err) { console.error('[면스방] 읽음 표시 오류', err && err.code); });
     },
     closeRoom: closeRoom,
     roomState: function (id) {
       if (room.id !== id) return { loading: true, list: [] };
-      return { loading: room.list === null && !room.error, list: room.list || [], error: room.error };
+      return { loading: room.list === null && !room.error, list: room.list || [], error: room.error, reads: room.reads };
     },
     send: async function (id, text) {
       if (!signedIn()) return needLogin();
@@ -1976,6 +2000,18 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
       const last = lastMsg.get(id);
       m[id] = Math.max(m[id] || 0, last ? last.at : 0, Date.now());
       lsSet(readKey(), JSON.stringify(m));
+      /* 다른 참가자에게 '읽음'을 알린다: 내가 아직 안 읽은 새 메시지가 있을 때만 쓴다 */
+      if (room.id !== id || !room.list || room.writing || !signedIn()) return;
+      const newest = room.list.length ? room.list[room.list.length - 1].at : 0;
+      if (!newest || newest <= room.myReadAt) return;
+      const p = cache.get(id);
+      if (!p || !R.memberOf(p, uid)) return;
+      const at = Date.now();
+      room.writing = true;
+      fs.setDoc(fs.doc(db, 'posts', id, 'reads', uid), { at: at }).then(function () {
+        if (room.id === id) room.myReadAt = Math.max(room.myReadAt, at);
+      }).catch(function (err) { console.error('[면스방] 읽음 저장 실패', err && err.code); })
+        .then(function () { if (room.id === id) room.writing = false; });
     },
     /* 안 읽은 메시지 개수 (남이 보낸 것만, 최대 10) */
     unread: function (id) {
@@ -2981,6 +3017,11 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
     else if (!st.list.length) html = '<li class="msg-info">아직 대화가 없어요. 먼저 인사해 보세요.</li>';
     else {
       let lastDay = '', lastUid = '';
+      const reads = st.reads || {};
+      /* 카카오톡처럼: 이 메시지를 아직 안 읽은 참가자 수 (보낸 사람 빼고) */
+      const unreadBy = function (m) {
+        return p.members.filter(function (x) { return x.uid !== m.uid && (reads[x.uid] || 0) < m.at && (x.uid !== u.uid); }).length;
+      };
       st.list.forEach(function (m) {
         const day = R.todayKST(m.at);
         if (day !== lastDay) { html += '<li class="msg-day"><span>' + esc(R.dateLabel(day)) + '</span></li>'; lastDay = day; lastUid = ''; }
@@ -2988,7 +3029,9 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
         const head = !mine && m.uid !== lastUid;
         html += '<li class="msg' + (mine ? ' mine' : '') + (head ? ' head' : '') + '">'
           + (head ? '<span class="msg-nick">' + esc(m.nick) + '</span>' : '')
-          + '<span class="msg-line"><span class="bubble">' + linkify(esc(m.text)) + '</span><time class="msg-time">' + esc(clock(m.at)) + '</time></span></li>';
+          + '<span class="msg-line"><span class="bubble">' + linkify(esc(m.text)) + '</span><span class="msg-side">'
+          + (function () { const n = unreadBy(m); return n ? '<span class="msg-unread" title="안 읽은 사람 ' + n + '명"><span class="sr">안 읽은 사람 </span>' + n + '<span class="sr">명</span></span>' : ''; })()
+          + '<time class="msg-time">' + esc(clock(m.at)) + '</time></span></span></li>';
         lastUid = m.uid;
       });
     }

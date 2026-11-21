@@ -185,6 +185,15 @@ service cloud.firestore {
         allow read: if signedIn() && inRoom();
         allow create: if signedIn() && inRoom() && validMessage();
       }
+
+      // 읽음 표시: 참가자마다 이 방을 마지막으로 본 시각 하나. 같은 방 사람만 읽고, 자기 것만 쓴다.
+      match /reads/{userId} {
+        allow read: if signedIn() && inRoom();
+        allow create, update: if signedIn() && request.auth.uid == userId && inRoom()
+          && request.resource.data.keys().hasOnly(['at'])
+          && request.resource.data.at is int
+          && request.resource.data.at <= request.time.toMillis() + 60000;
+      }
     }
   }
 }
