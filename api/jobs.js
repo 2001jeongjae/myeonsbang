@@ -4,7 +4,8 @@
      GET https://apis.data.go.kr/1051000/recruitment/list
    - 인증키: Vercel 환경 변수 DATA_GO_KR_KEY (저장소에는 넣지 않는다)
    - 결과는 Vercel CDN에 6시간 저장된다. 그래서 하루 몇 번만 API를 부르고, 공고는 저절로 새로워진다.
-   - 면접 스터디 사이트라 신입이 지원할 수 있는 정규직·무기계약직·청년인턴 공고만 남기고, 대체인력은 뺀다.
+   - 면접 스터디 사이트라 신입이 지원할 수 있는 정규직·무기계약직·청년인턴 중 사무·기술 직군 공고만 남긴다.
+     대체인력, 현장 지원직(조리·청소·경비 등), 병원 의료직, 보훈·장애인 제한경쟁은 뺀다.
    - 화면에 넣는 모양은 src/jobs.js 의 공고 한 개와 같다. 분류 이름은 src/taxonomy.js 와 같다. */
 'use strict';
 
@@ -28,12 +29,18 @@ const NCS = {
   '기계': ['기계/자동차/조선', '설비/기계유지보수'],
   '재료': ['화학/에너지/환경'],
   '화학바이오': ['화학/에너지/환경', '바이오/제약연구개발'],
+  '화학': ['화학/에너지/환경'],
+  '연구': ['대학교수/연구원'],
   '섬유의복': ['패션/의류디자인'],
   '전기전자': ['전기/전자/반도체', '전기/소방/설비'],
   '정보통신': ['시스템/ERP개발', 'DevOps/클라우드/보안', 'IT기획/PM/PO'],
   '식품가공': ['식품/화장품'],
   '환경에너지안전': ['환경/안전관리', '환경/플랜트']
 };
+/* 면접 스터디를 거의 하지 않는 직군: 공고의 NCS 분야가 모두 여기에 들면 뺀다 (사무·기술 직군 위주로) */
+const SKIP_NCS = ['음식서비스', '경비청소', '이용숙박여행오락스포츠', '운전운송', '농림어업', '인쇄목재가구공예', '섬유의복', '사회복지종교', '보건의료'];
+/* 제목으로 거르는 것: 현장 지원직, 의사직, 보훈·장애인 등 지원 자격이 제한된 공고 */
+const SKIP_TITLE = /조리|청소|미화|경비|운전원|운전직|영선|당직|배식|주차|시설관리|보안요원|사무보조|단기|일용|전문의|의사직|제한경쟁|특별고용|서비스지원직/;
 const NCS_INDUSTRY = { '금융보험': '금융/보험', '정보통신': 'IT/SW', '화학바이오': '바이오/제약' };
 
 /* 근무지역 이름 → taxonomy.js REGIONS */
@@ -98,6 +105,8 @@ function toJob(row, today) {
 
   const ncs = pieces(row.ncsCdNmLst).map(function (s) { return text(s, 30); }).filter(Boolean).slice(0, 8);
   const keys = ncs.map(function (s) { return s.replace(/[.·ㆍ,\s]/g, ''); });
+  if (SKIP_TITLE.test(title)) return null;
+  if (keys.length && keys.every(function (k) { return SKIP_NCS.indexOf(k) >= 0; })) return null;
   const duties = uniq([].concat.apply([], keys.map(function (k) { return NCS[k] || []; })));
   const industries = uniq(['공공/비영리'].concat(keys.map(function (k) { return NCS_INDUSTRY[k] || ''; })));
   const regions = uniq(pieces(row.workRgnNmLst).map(regionOf));
