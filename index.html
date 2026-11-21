@@ -412,6 +412,43 @@ body.has-bar .toast { bottom: 96px; }
 .foot a { color: var(--muted); }
 body.has-bar .foot { padding-bottom: 120px; }
 
+/* 다가오는 채용 일정 (게시판 위) */
+.upcoming { margin: 0 0 40px; }
+.upcoming .board-head { justify-content: space-between; }
+.upcoming .board-head h2 { font-size: 22px; }
+.upcoming .link { --ul: 0px; font-size: 15px; }
+.up-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.up { display: grid; gap: 4px; min-height: 44px; padding: 14px 16px; border-radius: var(--r-md); background: var(--soft); color: var(--ink); text-decoration: none; transition: transform .2s var(--ease); }
+.up:hover { transform: translateY(-2px); }
+.up-date { font-size: 13.5px; font-weight: 600; color: var(--accent-text); font-variant-numeric: tabular-nums; }
+.up-what b { font-weight: 700; }
+.up-tag { display: inline-flex; align-items: center; min-height: 20px; margin-left: 2px; padding: 0 7px; border-radius: var(--r-full); background: var(--accent-soft); color: var(--accent-text); font-size: 12px; font-weight: 600; vertical-align: 1px; }
+
+/* 채용 일정 화면 */
+.jobs-lead { margin: 0 0 6px; }
+.jobs-check { margin: 0 0 24px; padding: 12px 14px; border-radius: var(--r-sm); background: var(--soft); color: var(--body); font-size: 14px; }
+.jobs { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.job { display: grid; gap: 10px; padding: 22px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--canvas); scroll-margin-top: calc(var(--top-h) + 16px); }
+.job-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.job-title { margin: 0; font-size: 19px; font-weight: 700; line-height: 1.35; }
+.job-tags { margin: 0; color: var(--muted); font-size: 14.5px; }
+.job-dates { display: grid; gap: 0; margin: 4px 0 0; border-top: 1px solid var(--line-soft); }
+.job-dates div { display: grid; grid-template-columns: 84px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line-soft); }
+.job-dates dt { color: var(--muted); font-size: 14px; font-weight: 500; }
+.job-dates dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.job-dates .next dd { color: var(--accent-text); }
+.dleft { display: inline-flex; align-items: center; min-height: 22px; margin-left: 6px; padding: 0 8px; border-radius: var(--r-full); background: var(--ok-bg); color: var(--ok); font-size: 12.5px; font-weight: 700; }
+.dleft.done { background: var(--any-bg); color: var(--any); }
+.job-note { margin: 0; color: var(--body); font-size: 14.5px; }
+.job-act { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 4px; }
+.job-act .link { --ul: 11px; min-height: 44px; display: inline-flex; align-items: center; }
+.job-src { margin: 0; color: var(--muted); font-size: 13px; }
+.job-src a { color: var(--muted); }
+.pill.js-open { background: var(--ok-bg); color: var(--ok); }
+.pill.js-soon { background: var(--wait-bg); color: var(--wait); }
+.pill.js-process { background: var(--accent-soft); color: var(--accent-text); }
+@media (max-width: 480px) { .job { padding: 18px; } .job-dates div { grid-template-columns: 72px 1fr; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
@@ -424,12 +461,12 @@ body.has-bar .foot { padding-bottom: 120px; }
 <header class="top">
   <div class="top-in">
     <a class="logo" href="#board" aria-label="면스방 처음 화면" translate="no"><span class="logo-mark" aria-hidden="true">면</span><span class="logo-text">면스방</span></a>
-    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a href="#me" data-tab="me">내 활동</a><a class="nav-wide" href="#about" data-tab="about">이용 안내</a></nav>
+    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a href="#me" data-tab="me">내 활동</a><a class="nav-wide" href="#jobs" data-tab="jobs">채용 일정</a><a class="nav-wide" href="#about" data-tab="about">이용 안내</a></nav>
     <a class="btn btn-primary btn-new" href="#new"><span class="wide-only">모집 </span>글 쓰기</a>
   </div>
 </header>
 <main id="view" class="wrap"><p class="loading">불러오는 중이에요…</p></main>
-<footer class="foot wrap"><p>면스방 · <a href="#about">이용 안내</a> · 실명·연락처·학교명은 적지 마세요.</p></footer>
+<footer class="foot wrap"><p>면스방 · <a href="#jobs">채용 일정</a> · <a href="#about">이용 안내</a> · 실명·연락처·학교명은 적지 마세요.</p></footer>
 <div id="actionbar" class="actionbar" hidden></div>
 <div id="sheet-root" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -686,7 +723,7 @@ body.has-bar .foot { padding-bottom: 120px; }
 
   const Rules = {
     JOBS: JOBS, STAGES: STAGES, COMPANIES: COMPANIES, RULES: RULES, JOIN: JOIN, STATUS: STATUS,
-    jobKey: jobKey, canonicalJob: canonicalJob,
+    squash: squash, jobKey: jobKey, canonicalJob: canonicalJob,
     todayKST: todayKST, addDays: addDays, daysUntil: daysUntil, ddayLabel: ddayLabel, dateLabel: dateLabel, isYmd: isYmd,
     statusOf: statusOf, memberOf: memberOf, applicationOf: applicationOf,
     privacyIssue: privacyIssue, nickIssue: nickIssue, ruleCheck: ruleCheck,
@@ -696,6 +733,108 @@ body.has-bar .foot { padding-bottom: 120px; }
 
   root.Rules = Rules;
   if (typeof module !== 'undefined' && module.exports) module.exports = Rules;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* 채용 일정 (사람이 공고문을 보고 직접 정리한 목록)
+   - checkedAt: 이 날짜에 원문으로 확인함. 일정은 회사 사정으로 바뀔 수 있어서 화면에 늘 원문 링크를 같이 보여 준다.
+   - apply: 서류 접수 기간(start 없으면 마감만 표시), steps: 그다음 전형 일정.
+     날짜를 정확히 모르면 when(보여 줄 글)과 sort(정렬용 날짜)만 적는다. 없는 날짜를 지어내지 않는다.
+   - url: 지원·원문 링크, source: 일정을 확인한 곳 */
+(function (root) {
+  'use strict';
+  root.JOBS = {
+    checkedAt: '2026-11-21',
+    items: [
+      {
+        id: 'hmc-se-2027',
+        company: '현대자동차',
+        title: '2027 서비스엔지니어 채용전환형 인턴십',
+        jobs: ['하이테크 진단/정비'],
+        apply: { start: '2026-11-11', end: '2026-11-30', endTime: '17:00' },
+        steps: [
+          { label: '온라인 채용설명회 (사전 신청자)', start: '2026-11-25', end: '2026-11-26' }
+        ],
+        note: '3주 인턴십 후 전환 평가 · 전국 22개 하이테크센터 근무',
+        url: 'https://talent.hyundai.com',
+        source: { name: '대학 취업지원팀 공지', url: 'https://www.syu.ac.kr/sec9' }
+      },
+      {
+        id: 'geps-2026h2',
+        company: '공무원연금공단',
+        title: '2026년 하반기 신입직원(전산직, 장애·보훈) 채용',
+        jobs: ['전산직', '사무직'],
+        apply: { start: '2026-10-22', end: '2026-11-05', endTime: '18:00' },
+        steps: [
+          { label: '필기·실기시험', start: '2026-11-14' },
+          { label: '1차 면접 (AI 역량검사)', start: '2026-11-17', end: '2026-11-19' },
+          { label: '2차 면접 (종합역량면접 + 인바스켓 PT면접)', start: '2026-11-23', end: '2026-11-24', interview: true },
+          { label: '최종 합격 발표', start: '2026-11-27' }
+        ],
+        url: 'https://www.korea.kr/archive/recruitInfoView.do?dataId=397369',
+        source: { name: '정책브리핑 채용정보 (나라일터)', url: 'https://www.korea.kr/archive/recruitInfoView.do?dataId=397369' }
+      },
+      {
+        id: 'dongjin-2611',
+        company: '동진쎄미켐',
+        title: '2026년 11월 신입/경력 정기채용',
+        jobs: ['연구개발', '품질관리', '품질보증', '생산관리', '생산기술', 'IT'],
+        apply: { start: '2026-11-06', end: '2026-11-15', endTime: '23:59' },
+        steps: [
+          { label: '서류 결과 발표', start: '2026-11-20' },
+          { label: '인성검사 (온라인)', start: '2026-11-20', end: '2026-11-22' },
+          { label: '면접', when: '12월 1·2주차 예정', sort: '2026-12-01', interview: true },
+          { label: '최종 합격 발표', start: '2026-12-16' }
+        ],
+        url: 'https://dongjin.careerlink.kr',
+        source: { name: '대학 취업센터 공지', url: 'https://biz.korea.ac.kr/cdc/recruitment/recruitment_view.html?no=14874&page=1' }
+      },
+      {
+        id: 'medison-2026h2',
+        company: '삼성메디슨',
+        title: '2026 하반기 3급 신입사원 채용',
+        jobs: ['회로/FPGA개발', 'SW개발', '영상개발'],
+        apply: { start: '2026-11-10', end: '2026-11-19', endTime: '17:00' },
+        steps: [],
+        flow: '직무적합성평가 → 직무적성검사 → 종합면접 → 채용검진',
+        url: 'https://cse.snu.ac.kr/ko/community/notice/25850',
+        source: { name: '대학 학과 공지', url: 'https://cse.snu.ac.kr/ko/community/notice/25850' }
+      },
+      {
+        id: 'hyundai-steel-2026h2',
+        company: '현대제철',
+        title: '[일반직] 2026년 하반기 신입 채용',
+        jobs: ['생산관리', '기계정비', '전기정비', '토건'],
+        apply: { start: '2026-10-22', end: '2026-11-09', endTime: '13:00' },
+        steps: [],
+        note: '근무지 충남 당진, 전남 순천',
+        url: 'https://hyundai-steel.recruiter.co.kr/',
+        source: { name: '링커리어 공고', url: 'https://linkareer.com/activity/359039' }
+      },
+      {
+        id: 'hdg-2026h2',
+        company: '현대백화점그룹',
+        title: '2026 하반기 신입사원 채용',
+        jobs: ['영업관리', '마케팅', '경영지원', 'MD', '재경', '법무', '물류', '디지털기획'],
+        apply: { end: '2026-11-12' },
+        steps: [
+          { label: '인턴실습 (5주)', when: '12월 말 ~ 1월 말', sort: '2026-12-28' }
+        ],
+        url: 'https://ehyundai-recruit.com/',
+        source: { name: '대학 학과 공지', url: 'https://cse.snu.ac.kr/en/community/notice/25805' }
+      },
+      {
+        id: 'ekr-2026',
+        company: '한국농어촌공사',
+        title: '2026년도 직무중심 신입사원(5급, 6급) 채용',
+        jobs: ['행정', '토목', '기계', '전기', '건축'],
+        apply: { start: '2026-10-06', end: '2026-10-19', endTime: '14:00' },
+        steps: [],
+        note: '채용 인원 329명',
+        url: 'https://www.korea.kr/archive/recruitInfoView.do?dataId=395617',
+        source: { name: '정책브리핑 채용정보 (나라일터)', url: 'https://www.korea.kr/archive/recruitInfoView.do?dataId=395617' }
+      }
+    ]
+  };
 })(typeof window !== 'undefined' ? window : globalThis);
 
 /* 면스방 저장소 (실서비스): Firebase Firestore + 익명 로그인.
@@ -1097,6 +1236,7 @@ body.has-bar .foot { padding-bottom: 120px; }
       + miniCard('m1 urgent', 'D-3', '생산기술 · 1차 실무', 'same', '온라인 · 바로 참가', 2, 4)
       + miniCard('m2', 'D-8', '직무 모두 다르게 · PT', 'diverse', '오프라인 · 방장 수락', 3, 5)
       + '</div></section>'
+      + upcomingHtml()
       + '<section class="board" aria-labelledby="list-h">'
       + '<div class="board-head"><h2 id="list-h" tabindex="-1">모집 중인 스터디</h2><p class="count" id="count" aria-live="polite"></p></div>'
       + '<div class="tools"><div class="search"><label class="sr" for="f-q">회사나 직무로 찾기</label>'
@@ -1530,6 +1670,87 @@ body.has-bar .foot { padding-bottom: 120px; }
   }
 
   /* ---------- 이용 안내 ---------- */
+  /* ---------- 채용 일정 ---------- */
+  const JOBS = (window.JOBS && window.JOBS.items) || [];
+  function rangeLabel(a, b) { return b && b !== a ? R.dateLabel(a) + '~' + R.dateLabel(b) : R.dateLabel(a); }
+  function stepWhen(st) { return st.when || rangeLabel(st.start, st.end); }
+  function stepSort(st) { return st.sort || st.start; }
+  function stepEnd(st) { return st.end || st.start || st.sort; }
+  function shortLabel(label) { return String(label).replace(/\s*\(.*\)\s*$/, ''); }
+  function jobState(j, today) {
+    const a = j.apply || {};
+    if (a.start && a.start > today) return 'soon';
+    if (a.end && a.end >= today) return 'open';
+    return 'process';
+  }
+  function nextStep(j, today) {
+    return (j.steps || []).filter(function (st) { return stepEnd(st) >= today; })
+      .sort(function (x, y) { return stepSort(x) < stepSort(y) ? -1 : 1; })[0] || null;
+  }
+  function jobSortKey(j, today) {
+    const state = jobState(j, today);
+    if (state !== 'process') return (state === 'open' ? j.apply.end : j.apply.start);
+    const n = nextStep(j, today);
+    return n ? stepSort(n) : '9999-12-31';
+  }
+  function openStudies(company) {
+    const key = R.squash(company);
+    const now = Date.now();
+    return S.posts().filter(function (p) { return R.squash(p.company) === key && R.statusOf(p, now) === 'open'; }).length;
+  }
+  const JOB_STATE = { open: '접수 중', soon: '접수 예정', process: '전형 진행 중' };
+  function jobCard(j, today, now) {
+    const state = jobState(j, today);
+    const a = j.apply || {};
+    const n = nextStep(j, today);
+    const count = openStudies(j.company);
+    let applyText = a.start ? rangeLabel(a.start, a.end) : '~' + R.dateLabel(a.end);
+    if (a.endTime) applyText += ' ' + a.endTime;
+    const left = state === 'open' ? ' <span class="dleft">' + esc(R.ddayLabel(R.daysUntil(a.end, now))) + '</span>' : (state === 'process' ? ' <span class="dleft done">마감</span>' : '');
+    let next = '';
+    if (n) next = '<div class="next"><dt>다음 일정</dt><dd>' + esc(n.label) + ' · ' + esc(stepWhen(n)) + '</dd></div>';
+    else if (state === 'process') next = '<div class="next"><dt>다음 일정</dt><dd>' + (j.flow ? esc(j.flow) + ' (일정은 개별 안내)' : '공고문에 아직 안 나왔어요. 개별 안내를 기다려 주세요.') + '</dd></div>';
+    return '<li class="job" id="job-' + esc(j.id) + '">'
+      + '<div class="job-top"><span class="company">' + esc(j.company) + '</span><span class="pill js-' + state + '">' + JOB_STATE[state] + '</span></div>'
+      + '<h2 class="job-title">' + esc(j.title) + '</h2>'
+      + '<p class="job-tags">' + j.jobs.map(esc).join(' · ') + '</p>'
+      + '<dl class="job-dates"><div><dt>서류 접수</dt><dd>' + esc(applyText) + left + '</dd></div>' + next + '</dl>'
+      + (j.note ? '<p class="job-note">' + esc(j.note) + '</p>' : '')
+      + '<div class="job-act"><a class="btn btn-primary btn-small" href="#new?company=' + encodeURIComponent(j.company) + '">이 공고로 면스 모집</a>'
+      + (count ? '<a class="btn btn-small" href="#board?q=' + encodeURIComponent(j.company) + '">모집 중인 면스 ' + count + '개</a>' : '')
+      + '<a class="link ext" href="' + esc(j.url) + '" target="_blank" rel="noopener noreferrer">원문 보기<span class="sr"> (새 창)</span></a></div>'
+      + '<p class="job-src">일정 확인: <a href="' + esc(j.source.url) + '" target="_blank" rel="noopener noreferrer">' + esc(j.source.name) + '</a></p>'
+      + '</li>';
+  }
+  function renderJobs() {
+    const now = Date.now();
+    const today = R.todayKST(now);
+    const list = JOBS.slice().sort(function (x, y) { return jobSortKey(x, today) < jobSortKey(y, today) ? -1 : 1; });
+    const checked = window.JOBS && window.JOBS.checkedAt;
+    view.innerHTML = '<a class="back" href="#board">← 모집 글</a><h1 class="page-h">채용 일정</h1>'
+      + '<p class="lead jobs-lead">면접을 앞둔 공고를 모았어요. 같은 공고에 지원했다면 바로 면스를 모집해 보세요.</p>'
+      + '<p class="jobs-check">' + (checked ? esc(R.dateLabel(checked)) + '에 공고문으로 확인한 일정이에요. ' : '') + '일정은 회사 사정으로 바뀔 수 있으니 지원 전에 원문을 꼭 확인하세요.</p>'
+      + (list.length ? '<ol class="jobs">' + list.map(function (j) { return jobCard(j, today, now); }).join('') + '</ol>'
+        : '<div class="empty"><p class="empty-t">지금 정리된 채용 일정이 없어요.</p></div>');
+  }
+  function upcomingHtml() {
+    const today = R.todayKST(Date.now());
+    const rows = [];
+    JOBS.forEach(function (j) {
+      if (jobState(j, today) === 'open') rows.push({ j: j, label: '서류 마감', when: R.dateLabel(j.apply.end), sort: j.apply.end });
+      (j.steps || []).forEach(function (st) {
+        if (stepEnd(st) >= today) rows.push({ j: j, label: shortLabel(st.label), when: stepWhen(st), sort: stepSort(st), interview: st.interview });
+      });
+    });
+    rows.sort(function (x, y) { return x.sort < y.sort ? -1 : 1; });
+    if (!rows.length) return '';
+    return '<section class="upcoming" aria-labelledby="up-h"><div class="board-head"><h2 id="up-h">다가오는 채용 일정</h2><a class="link" href="#jobs">전체 보기</a></div>'
+      + '<ol class="up-list">' + rows.slice(0, 4).map(function (r) {
+        return '<li><a class="up" href="#jobs"><span class="up-date">' + esc(r.when) + '</span>'
+          + '<span class="up-what"><b>' + esc(r.j.company) + '</b> ' + esc(r.label) + (r.interview ? ' <span class="up-tag">면접</span>' : '') + '</span></a></li>';
+      }).join('') + '</ol></section>';
+  }
+
   function renderAbout() {
     view.innerHTML = '<a class="back" href="#board">← 모집 글</a><h1 class="page-h">이용 안내</h1>'
       + '<section class="detail prose">'
@@ -1540,6 +1761,7 @@ body.has-bar .foot { padding-bottom: 120px; }
       + '<li>이 브라우저를 구분하는 무작위 번호 (가입 대신 쓰는 익명 로그인)</li></ul>'
       + '<p>실명, 전화번호, 이메일, 학교는 받지 않아요. 글에 전화번호나 이메일이 있으면 올라가지 않아요.</p>'
       + '<h2>누가 볼 수 있나요</h2><p>모집 글과 참가자·신청자의 닉네임, 직무, 한 줄 소개는 사이트에 들어온 누구나 볼 수 있어요. 그래서 나를 알아볼 수 있는 내용은 적지 마세요.</p>'
+      + '<h2>채용 일정은</h2><p>공개된 채용 공고문을 보고 사람이 정리한 거예요. 회사 사정으로 바뀔 수 있으니 지원하기 전에 꼭 원문 링크로 확인하세요.</p>'
       + '<h2>지우기</h2><p>방장은 언제든 글을 지울 수 있고, 지우면 참가자·신청 기록도 함께 사라져요. 참가자는 언제든 나갈 수 있고, 신청자는 신청을 취소할 수 있어요.</p>'
       + '<h2>같은 브라우저로 써 주세요</h2><p>가입이 없어서 다른 휴대폰이나 다른 브라우저로 들어오면 다른 사람으로 보여요. 카카오톡에서 링크를 열면 바깥 브라우저로 옮겨서 열어요.</p>'
       + '</section>';
@@ -1567,7 +1789,11 @@ body.has-bar .foot { padding-bottom: 120px; }
       const rule = q.get('rule');
       return { route: 'board', rule: ['all', 'same', 'diverse', 'any'].indexOf(rule) >= 0 ? rule : 'all', q: (q.get('q') || '').slice(0, 40) };
     }
-    if (h === 'new') return { route: 'new' };
+    if (h === 'new') {
+      const company = cut >= 0 ? (new URLSearchParams(raw.slice(cut + 1)).get('company') || '').trim().slice(0, 30) : '';
+      return company ? { route: 'new', company: company } : { route: 'new' };
+    }
+    if (h === 'jobs') return { route: 'jobs' };
     if (h === 'me') return { route: 'me' };
     if (h === 'about') return { route: 'about' };
     const m = /^post-([a-z0-9]{4,16})$/.exec(h);
@@ -1587,9 +1813,15 @@ body.has-bar .foot { padding-bottom: 120px; }
       else a.removeAttribute('aria-current');
     });
     if (ui.route !== 'post') renderActionBar(null);
-    if (ui.route === 'new') renderNew();
+    if (ui.route === 'new') {
+      renderNew();
+      /* 채용 일정에서 넘어오면 회사 이름을 미리 채워 둔다 */
+      const c = $('#n-company');
+      if (c && ui.prefillCompany) c.value = ui.prefillCompany;
+    }
     else if (ui.route === 'me') renderMe();
     else if (ui.route === 'about') renderAbout();
+    else if (ui.route === 'jobs') renderJobs();
     else if (ui.route === 'post') renderDetail();
     else { renderBoard(); syncBoardUrl(); }
   }
@@ -1604,6 +1836,7 @@ body.has-bar .foot { padding-bottom: 120px; }
       return;
     }
     if (r.rule) { ui.filters.rule = r.rule; ui.filters.q = r.q; saveFilters(); }
+    ui.prefillCompany = r.company || '';
     ui.route = r.route;
     ui.postId = r.postId || null;
     closeSheet();
@@ -1748,6 +1981,7 @@ body.has-bar .foot { padding-bottom: 120px; }
     if (ui.route === 'board') renderList();
     else if (ui.route === 'post') renderDetail();
     else if (ui.route === 'me') renderMe();
+    else if (ui.route === 'jobs') renderJobs();
   });
 
   S.init().then(function () {
