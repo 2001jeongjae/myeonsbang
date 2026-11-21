@@ -600,9 +600,18 @@ body.in-room main { padding-bottom: 96px; }
 .prof-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .prof-name { font-weight: 700; font-size: 17px; margin: 0; }
 .prof-dl { display: grid; gap: 6px; margin: 0; }
-.prof-dl div { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 8px; }
+.prof-dl div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 8px; }
 .prof-dl dt { color: var(--muted); font-size: 14px; }
 .prof-dl dd { margin: 0; overflow-wrap: anywhere; }
+
+/* 스터디 정보 */
+.group-hint { margin: 0 0 4px; }
+.pc-more { display: grid; gap: 4px; margin: 12px 0 0; font-size: 14px; }
+.pc-more div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 8px; }
+.pc-more dt { color: var(--muted); }
+.pc-more dd { margin: 0; overflow-wrap: anywhere; }
+.pc-hint { margin: 12px 0 0 !important; font-size: 14px; }
+@media (max-width: 480px) { .pc-more div { grid-template-columns: 1fr; gap: 0; } .prof-dl div { grid-template-columns: 1fr; gap: 0; } }
 
 </style>
 </head>
@@ -814,6 +823,28 @@ body.in-room main { padding-bottom: 96px; }
     if (/대학교|univ/i.test(s)) return '학교 이름 말고 학과만 적어 주세요.';
     return privacyIssue(s);
   }
+  /* 스터디 정보 (모두 선택). 여러 개 고르는 것과 하나 고르는 것 */
+  const PROFILE_OPTS = {
+    times: ['평일 낮', '평일 저녁', '주말 낮', '주말 저녁'],
+    ways: ['온라인', '오프라인'],
+    practice: ['직무', 'PT', '인성', '토론', '영어'],
+    tags: ['인턴', '현장실습', '프로젝트', '공모전', '자격증', '동아리', '연구실'],
+    region: ['서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'],
+    exp: ['처음이에요', '1~2번 봤어요', '여러 번 봤어요'],
+    passes: ['1곳', '2곳', '3곳', '4곳', '5곳 이상']
+  };
+  const PROFILE_LISTS = ['times', 'ways', 'practice', 'tags'];
+  const PROFILE_ONES = ['region', 'exp', 'passes'];
+  /* 저장할 모양으로 정리: 목록은 표 순서대로, 없는 값은 버린다 */
+  function profileExtras(f) {
+    const out = {};
+    PROFILE_LISTS.forEach(function (k) {
+      const got = Array.isArray(f && f[k]) ? f[k] : [];
+      out[k] = PROFILE_OPTS[k].filter(function (v) { return got.indexOf(v) >= 0; });
+    });
+    PROFILE_ONES.forEach(function (k) { out[k] = f && PROFILE_OPTS[k].indexOf(f[k]) >= 0 ? f[k] : ''; });
+    return out;
+  }
   /* 사람을 짧게 소개하는 한 줄: "기계공학과 · 4학년" */
   function profileLine(e) {
     return [e && e.major, e && e.grade].filter(Boolean).join(' · ');
@@ -823,6 +854,10 @@ body.in-room main { padding-bottom: 96px; }
     const mj = majorIssue(f.major);
     if (mj) errors.major = mj;
     if (f.grade && GRADES.indexOf(f.grade) < 0) errors.grade = '학년을 다시 골라 주세요.';
+    PROFILE_LISTS.forEach(function (k) {
+      if (f[k] != null && (!Array.isArray(f[k]) || f[k].some(function (v) { return PROFILE_OPTS[k].indexOf(v) < 0; }))) errors[k] = '다시 골라 주세요.';
+    });
+    PROFILE_ONES.forEach(function (k) { if (f[k] && PROFILE_OPTS[k].indexOf(f[k]) < 0) errors[k] = '다시 골라 주세요.'; });
     const n = nickIssue(f.nick);
     if (n) errors.nick = n;
     const job = String(f.job || '').trim();
@@ -968,7 +1003,7 @@ body.in-room main { padding-bottom: 96px; }
     todayKST: todayKST, addDays: addDays, daysUntil: daysUntil, ddayLabel: ddayLabel, dateLabel: dateLabel, isYmd: isYmd,
     statusOf: statusOf, memberOf: memberOf, applicationOf: applicationOf,
     privacyIssue: privacyIssue, nickIssue: nickIssue,
-    GRADES: GRADES, majorIssue: majorIssue, profileLine: profileLine,
+    GRADES: GRADES, PROFILE_OPTS: PROFILE_OPTS, PROFILE_LISTS: PROFILE_LISTS, PROFILE_ONES: PROFILE_ONES, profileExtras: profileExtras, majorIssue: majorIssue, profileLine: profileLine,
     usernameIssue: usernameIssue, passwordIssue: passwordIssue, validateSignup: validateSignup, validateProfile: validateProfile,
     normUsername: normUsername, idToEmail: idToEmail, emailToId: emailToId, ruleCheck: ruleCheck,
     checkApply: checkApply, checkAccept: checkAccept, uniqueNick: uniqueNick, validatePost: validatePost,
@@ -1472,6 +1507,7 @@ body.in-room main { padding-bottom: 96px; }
         intro: (inn && prof.data && prof.data.intro) || '',
         major: (inn && prof.data && prof.data.major) || '',
         grade: (inn && prof.data && prof.data.grade) || '',
+        extras: R.profileExtras(inn && prof.data ? prof.data : {}),
         joinedAt: inn && user.metadata && user.metadata.creationTime ? Date.parse(user.metadata.creationTime) : 0
       };
     },
@@ -1479,7 +1515,7 @@ body.in-room main { padding-bottom: 96px; }
     /* 다른 사람 프로필 (같은 스터디 사람끼리 볼 때 씀). 1분 동안은 다시 묻지 않는다 */
     profileOf: async function (who) {
       if (!signedIn() || !who) return null;
-      const pick = function (d) { return { job: d.job || '', major: d.major || '', grade: d.grade || '', intro: d.intro || '' }; };
+      const pick = function (d) { return Object.assign({ job: d.job || '', major: d.major || '', grade: d.grade || '', intro: d.intro || '' }, R.profileExtras(d)); };
       if (who === uid) return pick(prof.data || {});
       const c = profCache.get(who);
       if (c && Date.now() - c.at < 60000) return c.data;
@@ -1506,7 +1542,7 @@ body.in-room main { padding-bottom: 96px; }
       const grade = f.grade || '';
       try {
         if (nick !== user.displayName) await authMod.updateProfile(user, { displayName: nick });
-        await fs.setDoc(fs.doc(db, 'users', uid), { nick: nick, job: job, intro: intro, major: major, grade: grade, updatedAt: Date.now() });
+        await fs.setDoc(fs.doc(db, 'users', uid), Object.assign({ nick: nick, job: job, intro: intro, major: major, grade: grade }, R.profileExtras(f), { updatedAt: Date.now() }));
         lsSet(NICK_KEY, nick);
         if (job) lsSet(JOB_KEY, job);
         emit();
@@ -2136,7 +2172,7 @@ body.in-room main { padding-bottom: 96px; }
   }
   function profileBody(e, live) {
     const d = live || {};
-    const rows = [['이 모집 직무', e.job], ['지원 직무', d.job && d.job !== e.job ? d.job : ''], ['학과', d.major || e.major], ['학년', d.grade || e.grade], ['한 줄 소개', d.intro || e.intro]];
+    const rows = [['이 모집 직무', e.job], ['지원 직무', d.job && d.job !== e.job ? d.job : ''], ['학과', d.major || e.major], ['학년', d.grade || e.grade], ['한 줄 소개', d.intro || e.intro]].concat(extraRows(d));
     return '<dl class="prof-dl">' + rows.filter(function (r) { return r[1]; }).map(function (r) {
       return '<div><dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd></div>';
     }).join('') + '</dl>' + (d.major || d.grade || d.intro || e.major || e.grade || e.intro ? '' : '<p class="muted">학과·학년·소개는 아직 적지 않았어요.</p>');
@@ -2651,6 +2687,58 @@ body.in-room main { padding-bottom: 96px; }
     });
   }
 
+
+  /* 스터디 정보: 보기 이름 */
+  const EXTRA_LABEL = { times: '가능한 시간', ways: '진행 방식', region: '활동 지역', exp: '면접 경험', practice: '연습하고 싶은 면접', tags: '관련 경험', passes: '서류 합격' };
+  function extraRows(x) {
+    x = x || {};
+    return ['times', 'ways', 'region', 'exp', 'practice', 'tags', 'passes'].map(function (k) {
+      const v = Array.isArray(x[k]) ? x[k].join(', ') : x[k];
+      return [EXTRA_LABEL[k], v || ''];
+    });
+  }
+  function checkPills(name, opts, picked) {
+    return '<div class="seg" role="group">' + opts.map(function (v, i) {
+      const id = 'x-' + name + '-' + i;
+      return '<label class="pill-radio" for="' + id + '"><input id="' + id + '" type="checkbox" name="' + name + '" value="' + esc(v) + '"' + ((picked || []).indexOf(v) >= 0 ? ' checked' : '') + '><span>' + esc(v) + '</span></label>';
+    }).join('') + '</div>';
+  }
+  function onePills(name, opts, picked) {
+    return '<div class="seg" role="radiogroup">'
+      + [''].concat(opts).map(function (v, i) {
+        const id = 'x-' + name + '-' + i;
+        return '<label class="pill-radio" for="' + id + '"><input id="' + id + '" type="radio" name="' + name + '" value="' + esc(v) + '"' + ((picked || '') === v ? ' checked' : '') + '><span>' + (v ? esc(v) : '선택 안 함') + '</span></label>';
+      }).join('') + '</div>';
+  }
+  function readExtras(form) {
+    const f = {};
+    R.PROFILE_LISTS.forEach(function (k) { f[k] = $$('input[name="' + k + '"]:checked', form).map(function (i) { return i.value; }); });
+    R.PROFILE_ONES.forEach(function (k) {
+      const el = form.querySelector('[name="' + k + '"]');
+      f[k] = el && el.tagName === 'SELECT' ? el.value : (($$('input[name="' + k + '"]:checked', form)[0] || {}).value || '');
+    });
+    return f;
+  }
+  function extrasFieldset(x) {
+    x = x || {};
+    const O = R.PROFILE_OPTS;
+    const field = function (k, html, hint) {
+      return '<div class="field"><span class="label" id="lb-' + k + '">' + EXTRA_LABEL[k] + ' <span class="opt">(선택)</span></span>' + html
+        + (hint ? '<p class="hint">' + hint + '</p>' : '') + '<p class="err" data-err="' + k + '"></p></div>';
+    };
+    return '<fieldset class="group"><legend>스터디 정보</legend>'
+      + '<p class="hint group-hint">같은 스터디 사람과 신청을 받는 방장이 볼 수 있어요. 모두 선택이에요.</p>'
+      + field('times', checkPills('times', O.times, x.times), '여러 개 고를 수 있어요.')
+      + field('ways', checkPills('ways', O.ways, x.ways))
+      + '<div class="field"><label for="x-region">활동 지역 <span class="opt">(선택)</span></label><select id="x-region" name="region"><option value="">선택 안 함</option>'
+      + O.region.map(function (v) { return '<option' + (x.region === v ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join('')
+      + '</select><p class="hint">시·도까지만 받아요.</p><p class="err" data-err="region"></p></div>'
+      + field('exp', onePills('exp', O.exp, x.exp))
+      + field('practice', checkPills('practice', O.practice, x.practice))
+      + field('tags', checkPills('tags', O.tags, x.tags), '직무 면접 꼬리질문을 서로 만들어 줄 때 참고해요.')
+      + field('passes', onePills('passes', O.passes, x.passes), '이번 시즌 서류 합격 수예요. 기업 이름은 적지 않아요.')
+      + '</fieldset>';
+  }
   /* ---------- 프로필 수정 ---------- */
   function renderProfile() {
     const u = S.me();
@@ -2679,8 +2767,10 @@ body.in-room main { padding-bottom: 96px; }
       + '<input id="p-intro" name="intro" maxlength="60" placeholder="예: 생산라인 실습 경험 있어요…" autocomplete="off" value="' + esc(u.intro || '') + '">'
       + '<div class="meta-row"><p class="hint">신청할 때 미리 채워져요. 실명·연락처·학교명은 적지 마세요.</p><span class="counter" id="p-intro-count">' + (u.intro || '').length + '/60</span></div>'
       + '<p class="err" data-err="intro"></p></div>'
+      + '</fieldset>'
+      + extrasFieldset(u.extras)
       + '<div class="row-end"><button class="btn btn-primary" type="submit">저장</button></div>'
-      + '</fieldset></form>'
+      + '</form>'
       + '<form id="pw-form" class="form pw-form" novalidate>'
       + '<fieldset class="group"><legend>비밀번호 바꾸기</legend>'
       + '<input type="text" name="username" autocomplete="username" value="' + esc(u.username) + '" hidden>'
@@ -2692,7 +2782,7 @@ body.in-room main { padding-bottom: 96px; }
       + '</fieldset></form>';
   }
   function submitProfile(form) {
-    const f = { nick: $('#p-nick').value, job: readJob('p-job'), major: $('#p-major').value, grade: $('#p-grade').value, intro: $('#p-intro').value };
+    const f = Object.assign({ nick: $('#p-nick').value, job: readJob('p-job'), major: $('#p-major').value, grade: $('#p-grade').value, intro: $('#p-intro').value }, readExtras(form));
     const v = R.validateProfile(f);
     showErrors(form, v.errors);
     if (!v.ok) return;
@@ -2747,6 +2837,11 @@ body.in-room main { padding-bottom: 96px; }
       + [['지원 직무', u.job], ['학과', u.major], ['학년', u.grade]].map(function (x) {
         return '<div><dt>' + x[0] + '</dt><dd' + (x[1] ? '' : ' class="muted"') + '>' + (x[1] ? esc(x[1]) : '아직 안 정했어요') + '</dd></div>';
       }).join('') + '</dl>'
+      + (function () {
+        const rows = extraRows(u.extras).filter(function (r) { return r[1]; });
+        return rows.length ? '<dl class="pc-more">' + rows.map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('') + '</dl>'
+          : '<p class="muted pc-hint">가능한 시간, 활동 지역, 면접 경험 같은 스터디 정보를 적으면 같은 스터디 사람에게 보여요. <a class="link" href="#profile">적으러 가기</a></p>';
+      })()
       + (u.intro ? '<p class="pc-intro">' + esc(u.intro) + '</p>' : '')
       + '</div><div class="pc-act"><a class="btn btn-small" href="#profile">프로필 수정</a>'
       + '<button type="button" class="btn btn-small" data-action="sign-out">로그아웃</button></div></section>'

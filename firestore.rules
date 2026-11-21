@@ -33,6 +33,23 @@ service cloud.firestore {
         && e.at is int;
     }
 
+    // 스터디 정보: 정해진 보기 안에서만 고른다 (모두 선택)
+    function pickList(d, k, opts) {
+      return !(k in d) || (d[k] is list && d[k].size() <= opts.size() && d[k].hasOnly(opts));
+    }
+    function pickOne(d, k, opts) {
+      return !(k in d) || d[k] == '' || d[k] in opts;
+    }
+    function validExtras(d) {
+      return pickList(d, 'times', ['평일 낮', '평일 저녁', '주말 낮', '주말 저녁'])
+        && pickList(d, 'ways', ['온라인', '오프라인'])
+        && pickList(d, 'practice', ['직무', 'PT', '인성', '토론', '영어'])
+        && pickList(d, 'tags', ['인턴', '현장실습', '프로젝트', '공모전', '자격증', '동아리', '연구실'])
+        && pickOne(d, 'region', ['서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'])
+        && pickOne(d, 'exp', ['처음이에요', '1~2번 봤어요', '여러 번 봤어요'])
+        && pickOne(d, 'passes', ['1곳', '2곳', '3곳', '4곳', '5곳 이상']);
+    }
+
     function validGrade(g) {
       return g in ['', '1학년', '2학년', '3학년', '4학년', '졸업 예정', '졸업', '대학원'];
     }
@@ -126,13 +143,14 @@ service cloud.firestore {
     // 내 프로필(지원 직무, 학과, 학년, 한 줄 소개): 나만 읽고 쓴다.
     // 학과·학년은 모집 글에 신청하거나 글을 올릴 때 그 글의 참가 정보에 복사돼 보인다.
     // 같은 스터디 사람의 프로필을 열어 볼 수 있게, 로그인한 사람은 한 명씩(get) 읽을 수 있다. 목록(list)은 막는다.
-    // 그래서 이 문서에는 공개해도 되는 것(닉네임, 직무, 학과, 학년, 한 줄 소개)만 둔다.
+    // 그래서 이 문서에는 공개해도 되는 것(닉네임, 직무, 학과, 학년, 한 줄 소개, 스터디 정보)만 둔다.
     match /users/{userId} {
       allow get: if signedIn();
       allow list: if false;
       allow create, update: if signedIn() && request.auth.uid == userId
         && request.resource.data.keys().hasAll(['nick', 'job', 'intro', 'updatedAt'])
-        && request.resource.data.keys().hasOnly(['nick', 'job', 'intro', 'major', 'grade', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['nick', 'job', 'intro', 'major', 'grade', 'times', 'ways', 'practice', 'tags', 'region', 'exp', 'passes', 'updatedAt'])
+        && validExtras(request.resource.data)
         && str(request.resource.data.nick, 2, 10) && str(request.resource.data.job, 0, 20)
         && (!('major' in request.resource.data) || str(request.resource.data.major, 0, 20))
         && (!('grade' in request.resource.data) || validGrade(request.resource.data.grade))
