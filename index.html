@@ -72,6 +72,7 @@ window.MYEONSBANG_FIREBASE = {"apiKey": "AIzaSyA2HMcMdonN2FxNsduETGA4io_FHG_2RA4
 
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
+.narrow-only { display: none; }
 html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; scroll-padding-top: calc(var(--top-h) + 16px); }
 @media (pointer: fine) { html { overscroll-behavior: none; } }
 html:has(body.has-bar) { scroll-padding-bottom: 104px; }
@@ -133,6 +134,7 @@ body.sheet-open { overflow: hidden; }
 .top .btn-new { min-height: 44px; margin-left: 10px; padding: 0 18px; font-size: 15px; }
 @media (max-width: 767px) {
   .nav .nav-wide, .wide-only { display: none; }
+  .narrow-only { display: inline; }
   .top-in { padding: 0 16px; gap: 2px; }
   .nav a { padding: 0 10px; }
   .nav a::after { left: 10px; right: 10px; }
@@ -521,6 +523,22 @@ body.in-room .foot { display: none; }
 body.in-room main { padding-bottom: 96px; }
 @media (max-width: 480px) { .composer { padding-left: 16px; padding-right: 16px; } .room-head { margin: 0 -16px; padding: 10px 16px; } }
 
+/* ---------- 마이페이지 ---------- */
+.profile-card { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 20px; margin: 16px 0 8px; padding: 24px; border: 1px solid var(--line); border-radius: var(--r-lg); }
+.avatar-lg { width: 64px; height: 64px; font-size: 26px; background: var(--accent-soft); color: var(--accent-text); }
+.pc-main { flex: 1 1 220px; min-width: 0; }
+.pc-main p { margin: 0; }
+.pc-name { color: var(--ink); font-size: 22px; font-weight: 700; }
+.pc-id { margin-top: 2px !important; color: var(--muted); font-size: 14px; }
+.pc-tags { margin-top: 10px !important; font-size: 14px; }
+.pc-intro { margin-top: 8px !important; color: var(--body); }
+.pc-act { display: flex; gap: 8px; flex-wrap: wrap; }
+.static { margin: 0; min-height: 44px; display: flex; align-items: center; gap: 6px; color: var(--ink); }
+.row-end { display: flex; justify-content: flex-end; }
+.pw-form { margin-top: 40px; }
+@media (max-width: 480px) { .profile-card { padding: 18px; } .pc-act { width: 100%; } .pc-act .btn { flex: 1; } }
+.counter { white-space: nowrap; flex: none; }
+
 </style>
 </head>
 <body>
@@ -529,7 +547,7 @@ body.in-room main { padding-bottom: 96px; }
 <header class="top">
   <div class="top-in">
     <a class="logo" href="#board" aria-label="면스방 처음 화면" translate="no"><span class="logo-mark" aria-hidden="true">면</span><span class="logo-text">면스방</span></a>
-    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a href="#me" data-tab="me">내 활동</a><a href="#chat" data-tab="chat">메시지</a><a class="nav-wide" href="#jobs" data-tab="jobs">채용 일정</a><a class="nav-wide" href="#about" data-tab="about">이용 안내</a><a id="auth-link" class="nav-wide" href="#login" data-tab="login">로그인</a></nav>
+    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a href="#me" data-tab="me" aria-label="마이페이지"><span class="wide-only">마이페이지</span><span class="narrow-only" aria-hidden="true">MY</span></a><a href="#chat" data-tab="chat">메시지</a><a class="nav-wide" href="#jobs" data-tab="jobs">채용 일정</a><a class="nav-wide" href="#about" data-tab="about">이용 안내</a><a id="auth-link" class="nav-wide" href="#login" data-tab="login">로그인</a></nav>
     <a class="btn btn-primary btn-new" href="#new"><span class="wide-only">모집 </span>글 쓰기</a>
   </div>
 </header>
@@ -693,6 +711,17 @@ body.in-room main { padding-bottom: 96px; }
     if (n) errors.nick = n;
     return { ok: !Object.keys(errors).length, errors: errors };
   }
+  function validateProfile(f) {
+    const errors = {};
+    const n = nickIssue(f.nick);
+    if (n) errors.nick = n;
+    const job = String(f.job || '').trim();
+    if (job.length > 20) errors.job = '직무는 20자 안으로 적어 주세요.';
+    const intro = String(f.intro || '').trim();
+    if (intro.length > 60) errors.intro = '한 줄 소개는 60자 안으로 적어 주세요.';
+    else { const p = privacyIssue(intro); if (p) errors.intro = p; }
+    return { ok: !Object.keys(errors).length, errors: errors };
+  }
   function normUsername(id) { return String(id || '').trim().toLowerCase(); }
   function idToEmail(id) { return normUsername(id) + '@' + ID_DOMAIN; }
   function emailToId(email) {
@@ -829,7 +858,7 @@ body.in-room main { padding-bottom: 96px; }
     todayKST: todayKST, addDays: addDays, daysUntil: daysUntil, ddayLabel: ddayLabel, dateLabel: dateLabel, isYmd: isYmd,
     statusOf: statusOf, memberOf: memberOf, applicationOf: applicationOf,
     privacyIssue: privacyIssue, nickIssue: nickIssue,
-    usernameIssue: usernameIssue, passwordIssue: passwordIssue, validateSignup: validateSignup,
+    usernameIssue: usernameIssue, passwordIssue: passwordIssue, validateSignup: validateSignup, validateProfile: validateProfile,
     normUsername: normUsername, idToEmail: idToEmail, emailToId: emailToId, ruleCheck: ruleCheck,
     checkApply: checkApply, checkAccept: checkAccept, uniqueNick: uniqueNick, validatePost: validatePost,
     newId: newId, postTitle: postTitle, shareText: shareText
@@ -965,6 +994,8 @@ body.in-room main { padding-bottom: 96px; }
   const lastMsg = new Map();      // postId -> 마지막 메시지 | null
   const previewSubs = new Map();  // postId -> 구독 해제 함수
   let room = { id: null, list: null, error: null, off: null };
+  /* 내 프로필 문서 users/{uid}: 기본 직무, 한 줄 소개 (닉네임은 계정 displayName이 기준) */
+  let prof = { uid: null, data: null, off: null };
 
   function lsGet(k) { try { return root.localStorage.getItem(k) || ''; } catch (e) { return ''; } }
   function lsSet(k, v) { try { root.localStorage.setItem(k, v); } catch (e) { /* 무시 */ } }
@@ -1070,6 +1101,19 @@ body.in-room main { padding-bottom: 96px; }
     });
     if (room.id && !want.has(room.id)) closeRoom();
   }
+  function syncProfile() {
+    if (!fs) return;
+    const want = signedIn() ? uid : null;
+    if (prof.uid === want) return;
+    if (prof.off) prof.off();
+    prof = { uid: want, data: null, off: null };
+    if (!want) return;
+    prof.off = fs.onSnapshot(fs.doc(db, 'users', want), function (ds) {
+      if (prof.uid !== want) return;
+      prof.data = ds.exists() ? ds.data() : {};
+      emit();
+    }, function (err) { console.error('[면스방] 프로필 오류', err && err.code); });
+  }
   function closeRoom() {
     if (room.off) room.off();
     room = { id: null, list: null, error: null, off: null };
@@ -1098,7 +1142,7 @@ body.in-room main { padding-bottom: 96px; }
     try { db = fs.initializeFirestore(app, { experimentalAutoDetectLongPolling: true }); } catch (e) { db = fs.getFirestore(app); }
     await auth.authStateReady();
     setUser(auth.currentUser);
-    authMod.onAuthStateChanged(auth, function (u) { setUser(u); syncPreviews(); emit(); });
+    authMod.onAuthStateChanged(auth, function (u) { setUser(u); syncPreviews(); syncProfile(); emit(); });
 
     await new Promise(function (resolve, reject) {
       let first = true;
@@ -1110,6 +1154,7 @@ body.in-room main { padding-bottom: 96px; }
         });
         if (first) { first = false; resolve(); }
         syncPreviews();
+        syncProfile();
         emit();
       }, function (err) {
         console.error('[면스방] 목록 오류', err);
@@ -1129,8 +1174,53 @@ body.in-room main { padding-bottom: 96px; }
       return {
         uid: uid, signedIn: inn, anon: !!(user && user.isAnonymous),
         username: inn ? R.emailToId(user.email) : '',
-        nick: (inn && user.displayName) || lsGet(NICK_KEY), job: lsGet(JOB_KEY)
+        nick: (inn && user.displayName) || lsGet(NICK_KEY),
+        job: (inn && prof.data && prof.data.job) || lsGet(JOB_KEY),
+        intro: (inn && prof.data && prof.data.intro) || '',
+        joinedAt: inn && user.metadata && user.metadata.creationTime ? Date.parse(user.metadata.creationTime) : 0
       };
+    },
+
+    /* ---------- 마이페이지 ---------- */
+    saveProfile: async function (f) {
+      if (!signedIn()) return needLogin();
+      const v = R.validateProfile(f);
+      if (!v.ok) return { ok: false, errors: v.errors };
+      const nick = String(f.nick).trim();
+      const job = f.job ? R.canonicalJob(f.job) : '';
+      const intro = String(f.intro || '').trim();
+      try {
+        if (nick !== user.displayName) await authMod.updateProfile(user, { displayName: nick });
+        await fs.setDoc(fs.doc(db, 'users', uid), { nick: nick, job: job, intro: intro, updatedAt: Date.now() });
+        lsSet(NICK_KEY, nick);
+        if (job) lsSet(JOB_KEY, job);
+        emit();
+        return { ok: true };
+      } catch (err) {
+        console.error('[면스방] 프로필 저장 실패', err && err.code);
+        return { ok: false, reason: failReason(err) };
+      }
+    },
+    changePassword: async function (f) {
+      if (!signedIn()) return needLogin();
+      const errors = {};
+      if (!f.current) errors.current = '지금 비밀번호를 적어 주세요.';
+      const p = R.passwordIssue(f.next);
+      if (p) errors.next = p;
+      else if (f.next !== f.next2) errors.next2 = '새 비밀번호가 서로 달라요.';
+      else if (f.next === f.current) errors.next = '지금 비밀번호와 다른 비밀번호를 적어 주세요.';
+      if (Object.keys(errors).length) return { ok: false, errors: errors };
+      try {
+        await authMod.reauthenticateWithCredential(user, authMod.EmailAuthProvider.credential(user.email, f.current));
+      } catch (err) {
+        const code = err && err.code;
+        if (code === 'auth/too-many-requests') return { ok: false, reason: '시도가 너무 많았어요. 잠시 뒤 다시 해 보세요.' };
+        return { ok: false, errors: { current: '지금 비밀번호가 맞지 않아요.' } };
+      }
+      try {
+        await authMod.updatePassword(user, f.next);
+        return { ok: true };
+      } catch (err) { return authFail(err); }
     },
 
     signUp: async function (f) {
@@ -1166,6 +1256,8 @@ body.in-room main { padding-bottom: 96px; }
 
     signOut: async function () {
       closeRoom();
+      if (prof.off) prof.off();
+      prof = { uid: null, data: null, off: null };
       previewSubs.forEach(function (off) { off(); });
       previewSubs.clear();
       lastMsg.clear();
@@ -1654,7 +1746,7 @@ body.in-room main { padding-bottom: 96px; }
       if (msg) { ctl.setAttribute('aria-invalid', 'true'); ctl.setAttribute('aria-describedby', el.id); }
       else { ctl.removeAttribute('aria-invalid'); ctl.removeAttribute('aria-describedby'); }
     });
-    const order = ['company', 'job', 'stage', 'interviewDate', 'jobRule', 'joinMode', 'capacity', 'mode', 'place', 'intro', 'username', 'nick', 'password', 'password2'];
+    const order = ['company', 'job', 'stage', 'interviewDate', 'jobRule', 'joinMode', 'capacity', 'mode', 'place', 'intro', 'username', 'nick', 'password', 'password2', 'current', 'next', 'next2'];
     const first = order.find(function (k) { return errors[k]; });
     if (first) {
       const el = $('[data-err="' + first + '"]', form);
@@ -1861,7 +1953,7 @@ body.in-room main { padding-bottom: 96px; }
       + '<form id="apply-form" class="form tight" novalidate>'
       + '<p class="as-who">' + esc(u.nick) + ' 닉네임으로 신청해요.</p>'
       + '<div class="field"><label for="a-job">내 직무</label>' + jobSelect('a-job', u.job) + '</div>'
-      + '<div class="field"><label for="a-intro">한 줄 소개 <span class="opt">(선택)</span></label><input id="a-intro" name="intro" maxlength="60" placeholder="예: 생산라인 실습 경험 있어요…" autocomplete="off"></div>'
+      + '<div class="field"><label for="a-intro">한 줄 소개 <span class="opt">(선택)</span></label><input id="a-intro" name="intro" maxlength="60" placeholder="예: 생산라인 실습 경험 있어요…" autocomplete="off" value="' + esc(u.intro || '') + '"></div>'
       + '<p class="check-line" id="a-check" aria-live="polite"></p>'
       + '<p class="hint">실명·연락처·학교명은 적지 마세요.</p>'
       + '<div class="sheet-actions"><button type="button" class="btn" data-action="close-sheet">닫기</button>'
@@ -1939,7 +2031,7 @@ body.in-room main { padding-bottom: 96px; }
   /* ---------- 로그인 · 가입 ---------- */
   function safeNext(n) {
     n = String(n || '');
-    return /^(board|me|jobs|about|chat|new(\?company=[^&#]{0,90})?|(post|chat)-[a-z0-9]{4,16})$/.test(n) ? n : 'board';
+    return /^(board|me|profile|jobs|about|chat|new(\?company=[^&#]{0,90})?|(post|chat)-[a-z0-9]{4,16})$/.test(n) ? n : 'board';
   }
   function guestActivity() {
     const u = S.me();
@@ -1950,7 +2042,8 @@ body.in-room main { padding-bottom: 96px; }
     return hosting || joined ? { hosting: hosting, joined: joined } : null;
   }
   const AUTH_WHY = {
-    me: '내 활동을 보려면 로그인해 주세요.',
+    me: '마이페이지를 보려면 로그인해 주세요.',
+    profile: '프로필을 고치려면 로그인해 주세요.',
     new: '모집 글을 쓰려면 로그인해 주세요.',
     post: '신청하려면 로그인해 주세요.',
     chat: '메시지를 보려면 로그인해 주세요.'
@@ -2175,6 +2268,65 @@ body.in-room main { padding-bottom: 96px; }
     });
   }
 
+  /* ---------- 프로필 수정 ---------- */
+  function renderProfile() {
+    const u = S.me();
+    if (!u.signedIn) { renderAuth('login', 'profile'); return; }
+    view.innerHTML = '<a class="back" href="#me">← 마이페이지</a>'
+      + '<form id="profile-form" class="form" novalidate>'
+      + '<h1>프로필 수정</h1>'
+      + '<p class="lead">닉네임을 바꿔도 이미 올린 글·신청·채팅에는 예전 닉네임이 그대로 보여요.</p>'
+      + '<fieldset class="group"><legend>프로필</legend>'
+      + '<div class="field"><span class="label">아이디</span><p class="static" translate="no">@' + esc(u.username) + ' <span class="muted">(바꿀 수 없어요)</span></p></div>'
+      + '<div class="field"><label for="p-nick">닉네임</label><input id="p-nick" name="nick" maxlength="10" autocomplete="nickname" spellcheck="false" value="' + esc(u.nick) + '">'
+      + '<p class="hint">2~10자</p><p class="err" data-err="nick"></p></div>'
+      + '<div class="field"><label for="p-job">기본 직무 <span class="opt">(선택)</span></label>' + jobSelect('p-job', u.job)
+      + '<p class="hint">글쓰기와 신청 화면에 미리 채워져요.</p><p class="err" data-err="job"></p></div>'
+      + '<div class="field"><label for="p-intro">한 줄 소개 <span class="opt">(선택)</span></label>'
+      + '<input id="p-intro" name="intro" maxlength="60" placeholder="예: 생산라인 실습 경험 있어요…" autocomplete="off" value="' + esc(u.intro || '') + '">'
+      + '<div class="meta-row"><p class="hint">신청할 때 미리 채워져요. 실명·연락처·학교명은 적지 마세요.</p><span class="counter" id="p-intro-count">' + (u.intro || '').length + '/60</span></div>'
+      + '<p class="err" data-err="intro"></p></div>'
+      + '<div class="row-end"><button class="btn btn-primary" type="submit">저장</button></div>'
+      + '</fieldset></form>'
+      + '<form id="pw-form" class="form pw-form" novalidate>'
+      + '<fieldset class="group"><legend>비밀번호 바꾸기</legend>'
+      + '<input type="text" name="username" autocomplete="username" value="' + esc(u.username) + '" hidden>'
+      + '<div class="field"><label for="w-current">지금 비밀번호</label><input id="w-current" name="current" type="password" maxlength="64" autocomplete="current-password"><p class="err" data-err="current"></p></div>'
+      + '<div class="field"><label for="w-next">새 비밀번호</label><input id="w-next" name="next" type="password" maxlength="64" autocomplete="new-password"><p class="hint">영어와 숫자를 섞어 8자 이상</p><p class="err" data-err="next"></p></div>'
+      + '<div class="field"><label for="w-next2">새 비밀번호 확인</label><input id="w-next2" name="next2" type="password" maxlength="64" autocomplete="new-password"><p class="err" data-err="next2"></p></div>'
+      + '<p class="check-line bad" id="pw-msg" aria-live="polite"></p>'
+      + '<div class="row-end"><button class="btn" type="submit">비밀번호 바꾸기</button></div>'
+      + '</fieldset></form>';
+  }
+  function submitProfile(form) {
+    const f = { nick: $('#p-nick').value, job: readJob('p-job'), intro: $('#p-intro').value };
+    const v = R.validateProfile(f);
+    showErrors(form, v.errors);
+    if (!v.ok) return;
+    const btn = $('button[type="submit"]', form);
+    btn.disabled = true; btn.textContent = '저장하는 중…';
+    S.saveProfile(f).then(function (r) {
+      btn.disabled = false; btn.textContent = '저장';
+      if (!r.ok) { if (r.errors) showErrors(form, r.errors); if (r.reason) toast(r.reason); return; }
+      toast('프로필을 저장했어요.');
+      go('me');
+    });
+  }
+  function submitPassword(form) {
+    const f = { current: $('#w-current').value, next: $('#w-next').value, next2: $('#w-next2').value };
+    const msg = $('#pw-msg');
+    msg.textContent = '';
+    showErrors(form, {});
+    const btn = $('button[type="submit"]', form);
+    btn.disabled = true; btn.textContent = '바꾸는 중…';
+    S.changePassword(f).then(function (r) {
+      btn.disabled = false; btn.textContent = '비밀번호 바꾸기';
+      if (!r.ok) { if (r.errors) showErrors(form, r.errors); else msg.textContent = r.reason; return; }
+      form.reset();
+      toast('비밀번호를 바꿨어요. 다음 로그인부터 새 비밀번호를 써 주세요.');
+    });
+  }
+
   /* ---------- 내 활동 ---------- */
   function renderMe() {
     const u = S.me();
@@ -2192,10 +2344,16 @@ body.in-room main { padding-bottom: 96px; }
       const k = p.applicants.filter(function (a) { return a.status === 'pending'; }).length;
       return k ? '<span class="chip wait">신청 ' + k + '명 대기</span>' : '';
     };
-    view.innerHTML = '<div class="me-head"><h1 class="page-h">내 활동</h1>'
-      + '<div class="account"><span class="avatar" aria-hidden="true">' + esc(initial(u.nick)) + '</span>'
-      + '<span class="acc-main"><b>' + esc(u.nick) + '</b><span class="acc-id" translate="no">@' + esc(u.username) + '</span></span>'
-      + '<button type="button" class="btn btn-small" data-action="sign-out">로그아웃</button></div></div>'
+    const since = u.joinedAt ? R.dateLabel(R.todayKST(u.joinedAt)).replace(/\(.\)$/, '') : '';
+    view.innerHTML = '<h1 class="page-h">마이페이지</h1>'
+      + '<section class="profile-card" aria-label="내 프로필">'
+      + '<span class="avatar avatar-lg" aria-hidden="true">' + esc(initial(u.nick)) + '</span>'
+      + '<div class="pc-main"><p class="pc-name">' + esc(u.nick) + '</p>'
+      + '<p class="pc-id" translate="no">@' + esc(u.username) + (since ? ' · ' + esc(since) + ' 가입' : '') + '</p>'
+      + '<p class="pc-tags">' + (u.job ? '<span class="chip">' + esc(u.job) + '</span>' : '<span class="muted">기본 직무를 정하면 글쓰기·신청 때 미리 채워져요.</span>') + '</p>'
+      + (u.intro ? '<p class="pc-intro">' + esc(u.intro) + '</p>' : '')
+      + '</div><div class="pc-act"><a class="btn btn-small" href="#profile">프로필 수정</a>'
+      + '<button type="button" class="btn btn-small" data-action="sign-out">로그아웃</button></div></section>'
       + '<section class="d-sec"><h2>내가 올린 모집 <span class="num">' + hosting.length + '</span></h2>'
       + (hosting.length ? '<ol class="tickets">' + hosting.map(function (p) { return ticket(p, waitChip(p)); }).join('') + '</ol>'
         : '<p class="muted">아직 올린 모집이 없어요. <a href="#new">모집 글 쓰기</a></p>') + '</section>'
@@ -2338,6 +2496,7 @@ body.in-room main { padding-bottom: 96px; }
     const c = /^chat-([a-z0-9]{4,16})$/.exec(h);
     if (c) return { route: 'room', postId: c[1] };
     if (h === 'me') return { route: 'me' };
+    if (h === 'profile') return { route: 'profile' };
     if (h === 'about') return { route: 'about' };
     const m = /^post-([a-z0-9]{4,16})$/.exec(h);
     if (m) return { route: 'post', postId: m[1] };
@@ -2355,7 +2514,7 @@ body.in-room main { padding-bottom: 96px; }
     if (ui.route !== 'room') { delete view.dataset.room; document.body.classList.remove('in-room'); if (S.closeRoom) S.closeRoom(); }
     if (ui.route !== 'new') ui.dirty = false;
     $$('[data-tab]').forEach(function (a) {
-      if (a.dataset.tab === ui.route || (a.dataset.tab === 'chat' && ui.route === 'room')) a.setAttribute('aria-current', 'page');
+      if (a.dataset.tab === ui.route || (a.dataset.tab === 'chat' && ui.route === 'room') || (a.dataset.tab === 'me' && ui.route === 'profile')) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
     });
     if (ui.route !== 'post') renderActionBar(null);
@@ -2371,6 +2530,7 @@ body.in-room main { padding-bottom: 96px; }
     else if (ui.route === 'post') renderDetail();
     else if (ui.route === 'login' || ui.route === 'signup') renderAuth(ui.route, ui.next);
     else if (ui.route === 'chat') renderChatList();
+    else if (ui.route === 'profile') renderProfile();
     else if (ui.route === 'room') renderRoom();
     else { renderBoard(); syncBoardUrl(); }
   }
@@ -2523,6 +2683,11 @@ body.in-room main { padding-bottom: 96px; }
     const t = e.target;
     if (t.id === 'f-q') { ui.filters.q = t.value; saveFilters(); renderList(); syncBoardUrl(); }
     if (t.id === 'n-intro') $('#n-intro-count').textContent = t.value.length + '/300';
+    if (t.id === 'p-intro') $('#p-intro-count').textContent = t.value.length + '/60';
+    if (t.closest && (t.closest('#profile-form') || t.closest('#pw-form'))) {
+      const fd = t.closest('.field'); const er = fd && $('[data-err]', fd);
+      if (er && er.textContent) { er.textContent = ''; t.removeAttribute('aria-invalid'); t.removeAttribute('aria-describedby'); }
+    }
     if (t.id === 'c-text') { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 140) + 'px'; }
     if (t.closest && t.closest('#new-form')) ui.dirty = true;
     if (t.closest && t.closest('#apply-form')) { const p = S.post(ui.postId); if (p) updateApplyCheck(p); }
@@ -2541,6 +2706,8 @@ body.in-room main { padding-bottom: 96px; }
     else if (e.target.id === 'apply-form') submitApply();
     else if (e.target.id === 'auth-form') submitAuth(e.target);
     else if (e.target.id === 'chat-form') sendChat();
+    else if (e.target.id === 'profile-form') submitProfile(e.target);
+    else if (e.target.id === 'pw-form') submitPassword(e.target);
   });
 
   document.addEventListener('keydown', function (e) {
