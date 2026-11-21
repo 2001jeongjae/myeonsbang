@@ -478,7 +478,7 @@ body.has-bar .foot { padding-bottom: 120px; }
 .acc-id { color: var(--muted); font-size: 14px; }
 
 /* ---------- 메시지 ---------- */
-.nav a.has-dot::before { content: ""; position: absolute; top: 10px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.nav-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; margin-left: 4px; padding: 0 5px; border-radius: 9px; background: #d92d20; color: #fff; font-size: 11px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
 .chat-lead { margin: 0 0 20px; }
 .rooms { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-soft); }
 .room-row { display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 12px 4px; border-bottom: 1px solid var(--line-soft); color: inherit; text-decoration: none; }
@@ -492,7 +492,7 @@ body.has-bar .foot { padding-bottom: 120px; }
 .room-row.unread .rr-last { color: var(--ink); font-weight: 600; }
 .rr-side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .rr-time { color: var(--muted); font-size: 13px; white-space: nowrap; }
-.rr-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+.rr-count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #d92d20; color: #fff; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 .room-head { position: sticky; top: var(--top-h); z-index: 5; display: flex; align-items: center; gap: 12px; margin: 0 -24px; padding: 10px 24px; background: rgba(255, 255, 255, .96); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line-soft); }
 .room-head .back { margin: 0; flex: none; }
@@ -1233,6 +1233,7 @@ body.in-room main { padding-bottom: 96px; }
   let user = null;
   /* 채팅: 방마다 마지막 메시지 1개를 지켜보고, 연 방만 최근 메시지를 통째로 지켜본다 */
   const lastMsg = new Map();      // postId -> 마지막 메시지 | null
+  const recentMsgs = new Map();   // postId -> 최근 메시지 10개 (안 읽은 개수 세기용, 10개면 '9+')
   const previewSubs = new Map();  // postId -> 구독 해제 함수
   let room = { id: null, list: null, error: null, off: null };
   /* 내 프로필 문서 users/{uid}: 기본 직무, 한 줄 소개 (닉네임은 계정 displayName이 기준) */
@@ -1326,13 +1327,15 @@ body.in-room main { padding-bottom: 96px; }
     if (!fs) return;
     const want = new Set(myRoomIds());
     previewSubs.forEach(function (off, id) {
-      if (!want.has(id)) { off(); previewSubs.delete(id); lastMsg.delete(id); }
+      if (!want.has(id)) { off(); previewSubs.delete(id); lastMsg.delete(id); recentMsgs.delete(id); }
     });
     want.forEach(function (id) {
       if (previewSubs.has(id)) return;
-      const q = fs.query(msgCol(id), fs.orderBy('at', 'desc'), fs.limit(1));
+      const q = fs.query(msgCol(id), fs.orderBy('at', 'desc'), fs.limit(10));
       previewSubs.set(id, fs.onSnapshot(q, function (snap) {
-        lastMsg.set(id, snap.docs.length ? msgFrom(snap.docs[0]) : null);
+        const list = snap.docs.map(msgFrom);
+        recentMsgs.set(id, list);
+        lastMsg.set(id, list.length ? list[0] : null);
         emit();
       }, function (err) {
         console.error('[면스방] 채팅 미리보기 오류', err && err.code);
@@ -1502,6 +1505,7 @@ body.in-room main { padding-bottom: 96px; }
       previewSubs.forEach(function (off) { off(); });
       previewSubs.clear();
       lastMsg.clear();
+      recentMsgs.clear();
       try { await authMod.signOut(auth); } catch (e) { /* 무시 */ }
       lsSet(NICK_KEY, '');
       setUser(null);
@@ -1563,10 +1567,10 @@ body.in-room main { padding-bottom: 96px; }
       m[id] = Math.max(m[id] || 0, last ? last.at : 0, Date.now());
       lsSet(readKey(), JSON.stringify(m));
     },
+    /* 안 읽은 메시지 개수 (남이 보낸 것만, 최대 10) */
     unread: function (id) {
-      const last = lastMsg.get(id);
-      if (!last || last.uid === uid) return false;
-      return last.at > (readMap()[id] || 0);
+      const readAt = readMap()[id] || 0;
+      return (recentMsgs.get(id) || []).filter(function (m) { return m.uid !== uid && m.at > readAt; }).length;
     },
     post: function (id) { return cache.get(id) || null; },
 
@@ -2405,16 +2409,21 @@ body.in-room main { padding-bottom: 96px; }
       return '<a href="' + u + '" target="_blank" rel="noopener noreferrer nofollow">' + u + '</a>';
     });
   }
-  function anyUnread() {
-    if (!S.rooms || !S.me().signedIn) return false;
-    return S.rooms().some(function (r) { return S.unread(r.post.id); });
+  function unreadTotal() {
+    if (!S.rooms || !S.me().signedIn) return 0;
+    return S.rooms().reduce(function (n, r) { return n + (S.unread(r.post.id) || 0); }, 0);
   }
+  function badgeText(n) { return n > 9 ? '9+' : String(n); }
+  /* 머리 메뉴 '메시지' 옆 안 읽은 개수 */
   function renderChatDot() {
     const a = $('[data-tab="chat"]');
     if (!a) return;
-    const on = anyUnread();
-    a.classList.toggle('has-dot', on);
-    a.setAttribute('aria-label', on ? '메시지, 새 메시지 있음' : '메시지');
+    const n = unreadTotal();
+    let b = $('.nav-badge', a);
+    if (!n) { if (b) b.remove(); a.setAttribute('aria-label', '메시지'); return; }
+    if (!b) { b = document.createElement('span'); b.className = 'nav-badge'; b.setAttribute('aria-hidden', 'true'); a.appendChild(b); }
+    b.textContent = badgeText(n);
+    a.setAttribute('aria-label', '메시지, 안 읽은 메시지 ' + (n > 9 ? '9개 넘게' : n + '개'));
   }
   function renderChatList() {
     const u = S.me();
@@ -2435,7 +2444,7 @@ body.in-room main { padding-bottom: 96px; }
           + '<span class="rr-main"><span class="rr-top"><b>' + esc(p.company) + '</b><span class="rr-sub">' + esc(ticketTitle(p)) + ' · ' + p.members.length + '명</span></span>'
           + '<span class="rr-last">' + esc(preview) + '</span></span>'
           + '<span class="rr-side">' + (last ? '<span class="rr-time">' + esc(ago(last.at, now)) + '</span>' : '')
-          + (unread ? '<span class="rr-dot"><span class="sr">새 메시지</span></span>' : '') + '</span></a></li>';
+          + (unread ? '<span class="rr-count">' + badgeText(unread) + '<span class="sr">개 안 읽음</span></span>' : '') + '</span></a></li>';
       }).join('') + '</ul>'
         : '<div class="empty"><p class="empty-t">참가 중인 스터디가 없어요.</p><p>모집 글에 참가하거나 직접 모집하면 여기서 대화할 수 있어요.</p><a class="btn btn-primary" href="#board">모집 글 보기</a></div>');
   }
