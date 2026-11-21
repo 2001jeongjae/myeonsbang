@@ -906,6 +906,23 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
   .top .btn-new { margin-left: 4px; padding: 0 12px; font-size: 14.5px; }
 }
 
+/* 로그인·로그아웃 칸 */
+.auth-slot { display: inline-flex; }
+.nav-btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 15px; font-weight: 550; cursor: pointer; white-space: nowrap; border-radius: 8px; }
+.nav-btn:hover { color: var(--ink); background: var(--soft); }
+@media (max-width: 767px) { .nav-btn { padding: 0 10px; } }
+@media (max-width: 479px) { .nav-btn { padding: 0 8px; font-size: 14.5px; } }
+@media (max-width: 419px) {
+  .top-in { padding: 0 10px; gap: 0; }
+  .nav { gap: 0; }
+  .nav a, .nav-btn { padding: 0 6px; font-size: 14px; }
+  .nav a::after { left: 6px; right: 6px; }
+  .top .btn-new { margin-left: 4px; padding: 0 10px; font-size: 14px; }
+}
+@media (max-width: 479px) {
+  .nav .nav-badge { position: absolute; top: 2px; right: -7px; margin: 0; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; box-shadow: 0 0 0 2px #fff; }
+}
+
 </style>
 </head>
 <body>
@@ -914,7 +931,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
 <header class="top">
   <div class="top-in">
     <a class="logo" href="#board" aria-label="면스방 처음 화면" translate="no"><span class="logo-mark" aria-hidden="true">면</span><span class="logo-text">면스방</span></a>
-    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a href="#jobs" data-tab="jobs" aria-label="채용 일정"><span class="wide-only">채용 일정</span><span class="narrow-only" aria-hidden="true">채용</span></a><a href="#chat" data-tab="chat">메시지</a><a id="me-link" href="#me" data-tab="me" aria-label="마이페이지"><span class="wide-only">마이페이지</span><span class="narrow-only" aria-hidden="true">MY</span></a></nav>
+    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a href="#jobs" data-tab="jobs" aria-label="채용 일정"><span class="wide-only">채용 일정</span><span class="narrow-only" aria-hidden="true">채용</span></a><a href="#chat" data-tab="chat">메시지</a><a id="me-link" href="#me" data-tab="me" aria-label="마이페이지"><span class="wide-only">마이페이지</span><span class="narrow-only" aria-hidden="true">MY</span></a><span id="auth-slot" class="auth-slot"><a href="#login" data-tab="login">로그인</a></span></nav>
     <a class="btn btn-primary btn-new" href="#new"><span class="wide-only">모집 </span>글 쓰기</a>
   </div>
 </header>
@@ -2890,26 +2907,16 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
       go(next);
     });
   }
-  /* 머리 메뉴: 로그인 전에는 '로그인', 로그인 뒤에는 '마이페이지'(좁은 화면은 'MY') */
+  /* 머리 메뉴: 마이페이지는 늘 있고, 그 옆 칸이 로그인 전에는 '로그인', 로그인 뒤에는 '로그아웃' */
   function renderAuthLink() {
-    const a = $('#me-link');
-    if (!a) return;
+    const slot = $('#auth-slot');
+    if (!slot) return;
     const inn = !!S.me().signedIn;
-    if (a.dataset.state === String(inn)) return;
-    a.dataset.state = String(inn);
-    const cur = (inn && (ui.route === 'me' || ui.route === 'profile')) || (!inn && (ui.route === 'login' || ui.route === 'signup'));
-    if (cur) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
-    if (inn) {
-      a.setAttribute('href', '#me');
-      a.dataset.tab = 'me';
-      a.setAttribute('aria-label', '마이페이지');
-      a.innerHTML = '<span class="wide-only">마이페이지</span><span class="narrow-only" aria-hidden="true">MY</span>';
-    } else {
-      a.setAttribute('href', '#login');
-      a.dataset.tab = 'login';
-      a.removeAttribute('aria-label');
-      a.innerHTML = '로그인';
-    }
+    if (slot.dataset.state === String(inn)) return;
+    slot.dataset.state = String(inn);
+    slot.innerHTML = inn
+      ? '<button type="button" class="nav-btn" data-action="sign-out">로그아웃</button>'
+      : '<a href="#login" data-tab="login"' + (ui.route === 'login' || ui.route === 'signup' ? ' aria-current="page"' : '') + '>로그인</a>';
   }
 
   /* ---------- 메시지 ---------- */
