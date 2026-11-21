@@ -11,6 +11,8 @@
 - `index.html`: 사이트 전체 (화면, 규칙, Firebase 연결이 한 파일에 들어 있음)
 - `firestore.rules`: Firestore 보안 규칙. 바꾸면 Firebase 콘솔 → Firestore → 규칙에 붙여 넣고 게시합니다.
 - `og.png`: 카카오톡 등에 링크를 붙였을 때 보이는 미리보기 이미지
+- `api/jobs.js`: 공공기관 채용공고를 잡알리오 API(공공데이터포털)에서 받아 오는 Vercel 서버 함수. 주소 `/api/jobs`. 결과는 Vercel CDN에 6시간 저장돼서 공고가 저절로 새로워집니다.
+  - 인증키는 Vercel → Settings → Environment Variables 에 `DATA_GO_KR_KEY` 로 넣습니다 (저장소에 넣지 않음). 키가 없으면 사람이 정리한 공고만 보입니다.
 
 ## 구성
 

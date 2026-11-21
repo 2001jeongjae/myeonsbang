@@ -2634,6 +2634,60 @@ body.in-room main { padding-bottom: 96px; }
   /* ---------- 이용 안내 ---------- */
   /* ---------- 채용 일정 ---------- */
   const JOBS = (window.JOBS && window.JOBS.items) || [];
+  /* 공공기관 공고는 /api/jobs (잡알리오 API, 서버에서 6시간마다 새로 받음)에서 더 받아 붙인다. 실서비스에서만 */
+  const live = { state: window.MYEONSBANG_FIREBASE ? 'loading' : 'off', at: '', count: 0 };
+  function okDate(v) { return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v); }
+  function strList(v, max) { return Array.isArray(v) ? v.filter(function (x) { return typeof x === 'string'; }).slice(0, max || 12) : []; }
+  function cleanLiveJob(j) {
+    if (!j || typeof j !== 'object' || typeof j.id !== 'string' || !/^alio-\d{1,12}$/.test(j.id)) return null;
+    if (typeof j.company !== 'string' || typeof j.title !== 'string' || !j.apply || !okDate(j.apply.end)) return null;
+    const url = 'https://job.alio.go.kr/recruitview.do?idx=' + j.id.slice(5);
+    return {
+      id: j.id, auto: true, company: j.company.slice(0, 60), title: j.title.slice(0, 120),
+      jobs: strList(j.jobs, 8).length ? strList(j.jobs, 8) : ['직무 공고문 확인'],
+      duties: strList(j.duties).filter(function (s) { return T.SUB_TO_DUTY[s]; }),
+      types: strList(j.types).filter(function (s) { return T.TYPES.indexOf(s) >= 0; }),
+      corp: '공공기관/공기업',
+      regions: strList(j.regions, 16).filter(function (s) { return T.REGIONS.indexOf(s) >= 0; }),
+      industries: strList(j.industries).filter(function (s) { return T.INDUSTRIES.indexOf(s) >= 0; }),
+      apply: okDate(j.apply.start) ? { start: j.apply.start, end: j.apply.end } : { end: j.apply.end },
+      steps: [], flow: typeof j.flow === 'string' ? j.flow.slice(0, 80) : '', note: typeof j.note === 'string' ? j.note.slice(0, 80) : '',
+      url: url, source: { name: '잡알리오 (자동)', url: url }
+    };
+  }
+  function loadLiveJobs() {
+    if (live.state === 'off') return;
+    fetch('/api/jobs', { headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !Array.isArray(d.items) || !d.items.length) { live.state = 'none'; return; }
+        /* 사람이 정리한 공고와 같은 기관·같은 마감이면 사람이 정리한 쪽만 둔다 */
+        const mine = {};
+        JOBS.forEach(function (j) { if (j.apply && j.apply.end) mine[R.squash(j.company) + '|' + j.apply.end] = true; });
+        let n = 0;
+        d.items.forEach(function (raw) {
+          const j = cleanLiveJob(raw);
+          if (j && !mine[R.squash(j.company) + '|' + j.apply.end] && !JOBS.some(function (x) { return x.id === j.id; })) { JOBS.push(j); n++; }
+        });
+        live.state = 'ok'; live.count = n; live.at = typeof d.updatedAt === 'string' ? d.updatedAt : '';
+        if (ui.route === 'jobs' && $('#jobs-list')) {
+          const panel = $('#jf-panel'); if (panel) panel.innerHTML = jobFilterPanel(ui.jobFilter);
+          const chk = $('.jobs-check'); if (chk) chk.innerHTML = jobsCheckHtml();
+          renderJobList();
+        }
+      })
+      .catch(function () { live.state = 'none'; });
+  }
+  function jobsCheckHtml() {
+    const checked = window.JOBS && window.JOBS.checkedAt;
+    let s = checked ? esc(R.dateLabel(checked)) + '에 공고문으로 확인한 일정이에요. ' : '';
+    if (live.state === 'ok') {
+      const t = live.at ? new Date(live.at) : null;
+      const when = t && !isNaN(t) ? R.dateLabel(R.todayKST(t.getTime())) + ' ' + String((t.getUTCHours() + 9) % 24).padStart(2, '0') + ':' + String(t.getUTCMinutes()).padStart(2, '0') : '';
+      s += '공공기관 공고 ' + live.count + '개는 잡알리오에서 자동으로 받아요' + (when ? ' (' + esc(when) + ' 갱신)' : '') + '. ';
+    } else if (live.state === 'loading') s += '공공기관 공고를 불러오는 중이에요. ';
+    return s + '일정은 회사 사정으로 바뀔 수 있으니 지원 전에 원문을 꼭 확인하세요.';
+  }
   function rangeLabel(a, b) { return b && b !== a ? R.dateLabel(a) + '~' + R.dateLabel(b) : R.dateLabel(a); }
   function stepWhen(st) { return st.when || rangeLabel(st.start, st.end); }
   function stepSort(st) { return st.sort || st.start; }
@@ -2687,7 +2741,7 @@ body.in-room main { padding-bottom: 96px; }
       + '<div class="job-act"><a class="btn btn-primary btn-small" href="#new?company=' + encodeURIComponent(j.company) + '">이 공고로 면스 모집</a>'
       + (count ? '<a class="btn btn-small" href="#board?q=' + encodeURIComponent(j.company) + '">모집 중인 면스 ' + count + '개</a>' : '')
       + '<a class="link ext" href="' + esc(j.url) + '" target="_blank" rel="noopener noreferrer">원문 보기<span class="sr"> (새 창)</span></a></div>'
-      + '<p class="job-src">일정 확인: <a href="' + esc(j.source.url) + '" target="_blank" rel="noopener noreferrer">' + esc(j.source.name) + '</a></p>'
+      + '<p class="job-src">' + (j.auto ? '자동 수집: ' : '일정 확인: ') + '<a href="' + esc(j.source.url) + '" target="_blank" rel="noopener noreferrer">' + esc(j.source.name) + '</a></p>'
       + '</li>';
   }
   /* ---------- 채용 일정 필터: 직무(대분류→상세)·채용형태·기업·지역·산업·검색 ---------- */
@@ -2802,10 +2856,9 @@ body.in-room main { padding-bottom: 96px; }
   }
   function renderJobs() {
     if (!ui.jobFilter) ui.jobFilter = emptyFilter();
-    const checked = window.JOBS && window.JOBS.checkedAt;
     view.innerHTML = '<a class="back" href="#board">← 모집 글</a><h1 class="page-h">채용 일정</h1>'
       + '<p class="lead jobs-lead">면접을 앞둔 공고를 모았어요. 같은 공고에 지원했다면 바로 면스를 모집해 보세요.</p>'
-      + '<p class="jobs-check">' + (checked ? esc(R.dateLabel(checked)) + '에 공고문으로 확인한 일정이에요. ' : '') + '일정은 회사 사정으로 바뀔 수 있으니 지원 전에 원문을 꼭 확인하세요.</p>'
+      + '<p class="jobs-check">' + jobsCheckHtml() + '</p>'
       + jobFilterBar(ui.jobFilter)
       + '<div id="jobs-list"></div>';
     renderJobList();
@@ -2839,7 +2892,7 @@ body.in-room main { padding-bottom: 96px; }
       + '<p>실명, 전화번호, 이메일, 학교는 받지 않아요. 글에 전화번호나 이메일이 있으면 올라가지 않아요.</p>'
       + '<h2>비밀번호를 잊었다면</h2><p>메일을 받지 않아서 비밀번호를 찾아 드릴 수 없어요. 새 아이디로 다시 가입해 주세요.</p>'
       + '<h2>누가 볼 수 있나요</h2><p>모집 글과 참가자·신청자의 닉네임, 직무, 한 줄 소개는 사이트에 들어온 누구나 볼 수 있어요. 그래서 나를 알아볼 수 있는 내용은 적지 마세요.</p>'
-      + '<h2>채용 일정은</h2><p>공개된 채용 공고문을 보고 사람이 정리한 거예요. 회사 사정으로 바뀔 수 있으니 지원하기 전에 꼭 원문 링크로 확인하세요.</p>'
+      + '<h2>채용 일정은</h2><p>대기업·민간 공고는 공개된 공고문을 보고 사람이 정리해요. 공공기관 공고는 기획재정부 잡알리오(공공데이터포털 API)에서 신입이 지원할 수 있는 정규직·무기계약직·청년인턴 공고를 자동으로 받아 와요. 회사 사정으로 바뀔 수 있으니 지원하기 전에 꼭 원문 링크로 확인하세요.</p>'
       + '<h2>지우기</h2><p>방장은 언제든 글을 지울 수 있고, 지우면 참가자·신청 기록도 함께 사라져요. 참가자는 언제든 나갈 수 있고, 신청자는 신청을 취소할 수 있어요.</p>'
       + '<h2>다른 기기에서도</h2><p>같은 아이디로 로그인하면 휴대폰과 컴퓨터 어디서든 내 글과 신청을 그대로 이어서 볼 수 있어요.</p>'
       + '</section>';
@@ -3157,6 +3210,7 @@ body.in-room main { padding-bottom: 96px; }
     lastAuth = S.me().uid + ':' + S.me().signedIn;
     window.addEventListener('hashchange', route);
     route();
+    loadLiveJobs();
     /* 첫 화면 머리글은 처음 열 때 한 번만 올라오게 (taste: hero enters once) */
     setTimeout(function () { document.body.classList.add('entered'); }, 900);
   }, function (err) {
