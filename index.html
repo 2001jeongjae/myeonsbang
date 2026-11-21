@@ -877,6 +877,22 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
 .bubble { background: var(--canvas); border: 1px solid var(--line); }
 .msg.mine .bubble { border-color: var(--accent); }
 
+/* 채용 공고 카드: 같은 줄은 같은 높이, 버튼은 늘 아래에 */
+.jobs { align-items: stretch; }
+.job { display: flex; flex-direction: column; gap: 10px; }
+.job-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.7em; }
+.job-tags { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-cats { display: flex; flex-wrap: nowrap; gap: 6px; overflow: hidden; min-height: 28px; }
+.job-cats .cat-tag { flex: none; white-space: nowrap; }
+.job-cats .cat-tag.more { background: var(--soft); color: var(--muted); }
+.job-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-note { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.job-act { margin-top: auto; padding-top: 4px; }
+.jobs { grid-auto-rows: 1fr; }
+.job-dates div { display: flex; align-items: baseline; gap: 12px; }
+.job-dates dt { flex: none; width: 76px; }
+.job-dates dd { flex: 1; min-width: 0; }
+
 </style>
 </head>
 <body>
@@ -3266,9 +3282,14 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
       + '<div class="job-top"><span class="company">' + esc(j.company) + '</span><span class="pill js-' + state + '">' + JOB_STATE[state] + '</span></div>'
       + '<h2 class="job-title">' + esc(j.title) + '</h2>'
       + '<p class="job-tags">' + j.jobs.map(esc).join(' · ') + '</p>'
-      + '<p class="job-cats">' + (j.duties || []).map(function (c) {
-        return '<span class="cat-tag' + (f && f.sub === c ? ' on' : '') + '">' + esc(c) + '</span>';
-      }).join('') + '</p>'
+      + '<p class="job-cats">' + (function () {
+        /* 직무 태그는 3개까지만, 나머지는 +n (카드 높이를 고르게) */
+        const all = (j.duties || []).slice();
+        if (f && f.sub && all.indexOf(f.sub) > 2) { all.splice(all.indexOf(f.sub), 1); all.unshift(f.sub); }
+        return all.slice(0, 3).map(function (c) {
+          return '<span class="cat-tag' + (f && f.sub === c ? ' on' : '') + '">' + esc(c) + '</span>';
+        }).join('') + (all.length > 3 ? '<span class="cat-tag more" title="' + esc(all.slice(3).join(', ')) + '">+' + (all.length - 3) + '</span>' : '');
+      })() + '</p>'
       + '<p class="job-meta">' + [(j.types || []).join('·'), j.corp, (j.regions || []).join('·'), (j.industries || []).join('·')].filter(Boolean).map(esc).join(' · ') + '</p>'
       + '<dl class="job-dates"><div><dt>서류 접수</dt><dd>' + esc(applyText) + left + '</dd></div>' + next + '</dl>'
       + (j.note ? '<p class="job-note">' + esc(j.note) + '</p>' : '')
