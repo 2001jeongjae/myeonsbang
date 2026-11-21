@@ -613,6 +613,15 @@ body.in-room main { padding-bottom: 96px; }
 .pc-hint { margin: 12px 0 0 !important; font-size: 14px; }
 @media (max-width: 480px) { .pc-more div { grid-template-columns: 1fr; gap: 0; } .prof-dl div { grid-template-columns: 1fr; gap: 0; } }
 
+/* 모집 기간 */
+.tk-due { display: block; font-size: 14px; color: var(--body); }
+.tk-due.hot { color: var(--bad); font-weight: 600; }
+.pill.st-soon { background: var(--soft); color: var(--ink); }
+.pill.st-ended { background: var(--any-bg); color: var(--any); }
+.inline.range { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.inline.range input { flex: 1 1 150px; min-width: 0; }
+.stepper .cap-input { width: 88px !important; text-align: center; font-variant-numeric: tabular-nums; }
+
 </style>
 </head>
 <body>
@@ -661,7 +670,8 @@ body.in-room main { padding-bottom: 96px; }
     approve: { label: '방장 수락', desc: '신청을 받고, 방장이 수락한 사람만 참가해요.' }
   };
 
-  const STATUS = { open: '모집 중', full: '모집 완료', closed: '마감', past: '면접 지남' };
+  const STATUS = { open: '모집 중', soon: '모집 예정', full: '모집 완료', closed: '마감', ended: '모집 기간 끝', past: '면접 지남' };
+  const MAX_CAPACITY = 999;
 
   /* 직무 비교: 띄어쓰기·기호를 빼고, 흔한 줄임말은 같은 직무로 본다 */
   const ALIASES = {
@@ -761,8 +771,18 @@ body.in-room main { padding-bottom: 96px; }
     const n = daysUntil(post.interviewDate, now);
     if (n != null && n < 0) return 'past';
     if (post.closed) return 'closed';
+    const today = todayKST(now);
+    if (post.recruitEnd && today > post.recruitEnd) return 'ended';
     if (post.members.length >= post.capacity) return 'full';
+    if (post.recruitStart && today < post.recruitStart) return 'soon';
     return 'open';
+  }
+  /* 모집 글 정렬: 모집 마감일(없으면 면접일)이 가까운 것부터 */
+  function deadlineOf(post) { return post.recruitEnd || post.interviewDate || ''; }
+  function byDeadline(a, b) {
+    const x = deadlineOf(a) || '9999-12-31', y = deadlineOf(b) || '9999-12-31';
+    if (x !== y) return x < y ? -1 : 1;
+    return (b.createdAt || 0) - (a.createdAt || 0);
   }
 
   function memberOf(post, uid) {
@@ -828,7 +848,7 @@ body.in-room main { padding-bottom: 96px; }
     times: ['평일 낮', '평일 저녁', '주말 낮', '주말 저녁'],
     ways: ['온라인', '오프라인'],
     practice: ['직무', 'PT', '인성', '토론', '영어'],
-    tags: ['인턴', '현장실습', '프로젝트', '공모전', '자격증', '동아리', '연구실'],
+    tags: ['인턴', '현장실습', '프로젝트', '공모전', '자격증', '동아리', '연구실', '없음'],
     region: ['서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'],
     exp: ['처음이에요', '1~2번 봤어요', '여러 번 봤어요'],
     passes: ['1곳', '2곳', '3곳', '4곳', '5곳 이상']
@@ -842,6 +862,8 @@ body.in-room main { padding-bottom: 96px; }
       const got = Array.isArray(f && f[k]) ? f[k] : [];
       out[k] = PROFILE_OPTS[k].filter(function (v) { return got.indexOf(v) >= 0; });
     });
+    /* 관련 경험 '없음'은 다른 것과 같이 고를 수 없다: 다른 게 있으면 '없음'을 뺀다 */
+    if (out.tags.length > 1) out.tags = out.tags.filter(function (v) { return v !== '없음'; });
     PROFILE_ONES.forEach(function (k) { out[k] = f && PROFILE_OPTS[k].indexOf(f[k]) >= 0 ? f[k] : ''; });
     return out;
   }
@@ -889,7 +911,7 @@ body.in-room main { padding-bottom: 96px; }
     return { ok: true };
   }
 
-  const CLOSED_REASON = { full: '정원이 다 찼어요.', closed: '방장이 모집을 마감했어요.', past: '면접일이 지난 모집이에요.' };
+  const CLOSED_REASON = { full: '정원이 다 찼어요.', closed: '방장이 모집을 마감했어요.', past: '면접일이 지난 모집이에요.', ended: '모집 기간이 끝났어요.', soon: '아직 모집 시작 전이에요.' };
 
   function checkApply(post, uid, form, now) {
     if (post.hostId === uid) return { ok: false, code: 'host', reason: '내가 올린 모집이에요.' };
@@ -954,7 +976,16 @@ body.in-room main { padding-bottom: 96px; }
     }
 
     const cap = Number(f.capacity);
-    if (!Number.isInteger(cap) || cap < 2 || cap > 6) e.capacity = '정원은 2~6명이에요.';
+    if (!Number.isInteger(cap) || cap < 2) e.capacity = '정원은 나를 포함해 2명 이상이에요.';
+    else if (cap > MAX_CAPACITY) e.capacity = MAX_CAPACITY + '명까지 정할 수 있어요.';
+
+    const today = todayKST(now);
+    if (!isYmd(f.recruitStart)) e.recruitStart = '모집 시작일을 골라 주세요.';
+    else if (f.recruitStart < today) e.recruitStart = '오늘이나 그 뒤 날짜를 골라 주세요.';
+    if (!isYmd(f.recruitEnd)) e.recruitEnd = '모집 마감일을 골라 주세요.';
+    else if (isYmd(f.recruitStart) && f.recruitEnd < f.recruitStart) e.recruitEnd = '시작일과 같거나 그 뒤 날짜를 골라 주세요.';
+    else if (daysUntil(f.recruitEnd, now) > 120) e.recruitEnd = '4개월 안의 날짜를 골라 주세요.';
+    else if (f.interviewDate && isYmd(f.interviewDate) && f.recruitEnd > f.interviewDate) e.recruitEnd = '면접일보다 늦을 수 없어요.';
 
     if (!RULES[f.jobRule]) e.jobRule = '직무 조건을 골라 주세요.';
     if (!JOIN[f.joinMode]) e.joinMode = '참가 방식을 골라 주세요.';
@@ -1003,6 +1034,7 @@ body.in-room main { padding-bottom: 96px; }
     todayKST: todayKST, addDays: addDays, daysUntil: daysUntil, ddayLabel: ddayLabel, dateLabel: dateLabel, isYmd: isYmd,
     statusOf: statusOf, memberOf: memberOf, applicationOf: applicationOf,
     privacyIssue: privacyIssue, nickIssue: nickIssue,
+    MAX_CAPACITY: MAX_CAPACITY, deadlineOf: deadlineOf, byDeadline: byDeadline,
     GRADES: GRADES, PROFILE_OPTS: PROFILE_OPTS, PROFILE_LISTS: PROFILE_LISTS, PROFILE_ONES: PROFILE_ONES, profileExtras: profileExtras, majorIssue: majorIssue, profileLine: profileLine,
     usernameIssue: usernameIssue, passwordIssue: passwordIssue, validateSignup: validateSignup, validateProfile: validateProfile,
     normUsername: normUsername, idToEmail: idToEmail, emailToId: emailToId, ruleCheck: ruleCheck,
@@ -1335,7 +1367,7 @@ body.in-room main { padding-bottom: 96px; }
     const applicants = toList(d.applicants).sort(function (a, b) { return (a.at || 0) - (b.at || 0); });
     return {
       id: snap.id, company: d.company, job: d.job, jobKey: d.jobKey, stage: d.stage,
-      interviewDate: d.interviewDate || null, mode: d.mode, place: d.place || '', capacity: d.capacity,
+      interviewDate: d.interviewDate || null, recruitStart: d.recruitStart || '', recruitEnd: d.recruitEnd || '', mode: d.mode, place: d.place || '', capacity: d.capacity,
       jobRule: d.jobRule, joinMode: d.joinMode, intro: d.intro || '', hostId: d.hostId, closed: !!d.closed,
       createdAt: d.createdAt || 0, members: members, applicants: applicants
     };
@@ -1706,7 +1738,8 @@ body.in-room main { padding-bottom: 96px; }
       host.role = 'host';
       const data = {
         company: String(f.company).trim(), job: host.job, jobKey: host.jobKey, stage: f.stage,
-        interviewDate: f.interviewDate || null, mode: f.mode, place: f.mode === 'offline' ? String(f.place).trim() : '',
+        interviewDate: f.interviewDate || null, recruitStart: f.recruitStart, recruitEnd: f.recruitEnd,
+        mode: f.mode, place: f.mode === 'offline' ? String(f.place).trim() : '',
         capacity: Number(f.capacity), jobRule: f.jobRule, joinMode: f.joinMode, intro: String(f.intro || '').trim(),
         hostId: uid, closed: false, createdAt: now, members: {}, applicants: {}
       };
@@ -1926,6 +1959,7 @@ body.in-room main { padding-bottom: 96px; }
     return p.job + ' · ' + p.stage;
   }
   function seatDots(filled, cap) {
+    if (cap > 10) return '';
     let out = '';
     for (let i = 0; i < cap; i++) out += '<i class="' + (i < filled ? 'on' : '') + '"></i>';
     return '<span class="seats" aria-hidden="true">' + out + '</span>';
@@ -1946,11 +1980,24 @@ body.in-room main { padding-bottom: 96px; }
       + '<span class="tk-meta"><span class="chip rule-' + p.jobRule + '">' + R.RULES[p.jobRule].label + '</span>'
       + '<span>' + esc(where) + ' · ' + R.JOIN[p.joinMode].label + (p.seed ? ' · 예시' : '') + '</span></span>'
       + jobs
+      + recruitLine(p, st, now)
       + '<span class="tk-foot">' + seatDots(p.members.length, p.capacity)
       + '<span class="num">' + p.members.length + '/' + p.capacity + '명</span>'
       + '<span class="by">' + esc(host ? host.nick : '') + ' · ' + esc(ago(p.createdAt, now)) + '</span></span>'
       + (extra ? '<span class="tk-extra">' + extra + '</span>' : '')
       + '</span></a></li>';
+  }
+
+  /* 모집 기간 한 줄: 마감이 가까우면 눈에 띄게 */
+  function recruitLine(p, st, now) {
+    if (!p.recruitEnd) return '';
+    if (st === 'soon') return '<span class="tk-due">모집 ' + esc(R.dateLabel(p.recruitStart)) + '부터 ' + esc(R.dateLabel(p.recruitEnd)) + '까지</span>';
+    if (st !== 'open' && st !== 'full') return '';
+    const left = R.daysUntil(p.recruitEnd, now);
+    return '<span class="tk-due' + (left <= 2 ? ' hot' : '') + '">모집 마감 ' + (left === 0 ? '오늘' : 'D-' + left) + ' · ' + esc(R.dateLabel(p.recruitEnd)) + '까지</span>';
+  }
+  function recruitRange(p) {
+    return p.recruitEnd ? esc(R.dateLabel(p.recruitStart || p.recruitEnd)) + ' ~ ' + esc(R.dateLabel(p.recruitEnd)) : '정하지 않음';
   }
 
   /* ---------- 게시판 ---------- */
@@ -2005,8 +2052,10 @@ body.in-room main { padding-bottom: 96px; }
     if (!el) return;
     const now = Date.now();
     const list = filteredPosts();
-    const open = list.filter(function (p) { return R.statusOf(p, now) === 'open'; });
-    const done = list.filter(function (p) { return R.statusOf(p, now) !== 'open'; });
+    /* 모집 중·모집 예정은 마감이 가까운 것부터, 끝난 글은 아래에 */
+    const live = function (p) { const st = R.statusOf(p, now); return st === 'open' || st === 'soon'; };
+    const open = list.filter(live).sort(R.byDeadline);
+    const done = list.filter(function (p) { return !live(p); });
     const filtered = ui.filters.q.trim() || ui.filters.rule !== 'all';
     const countEl = $('#count');
     if (countEl) countEl.textContent = open.length + '개';
@@ -2069,10 +2118,17 @@ body.in-room main { padding-bottom: 96px; }
       + ruleCard('same', true) + ruleCard('diverse', false) + ruleCard('any', false) + '</div><p class="err" data-err="jobRule"></p></div>'
       + '<div class="field"><span class="label" id="l-join">참가 방식</span><div class="cards" role="radiogroup" aria-labelledby="l-join">'
       + joinCard('instant', true) + joinCard('approve', false) + '</div><p class="err" data-err="joinMode"></p></div>'
-      + '<div class="field"><span class="label" id="l-cap">정원 (나 포함)</span><div class="stepper" role="group" aria-labelledby="l-cap">'
-      + '<button type="button" data-action="cap-minus" aria-label="정원 한 명 줄이기">−</button><output id="n-cap" aria-live="polite">4</output>'
-      + '<button type="button" data-action="cap-plus" aria-label="정원 한 명 늘리기">+</button><span class="unit">명 (2~6명)</span></div>'
-      + '<p class="err" data-err="capacity"></p></div>'
+      + '<div class="field"><label for="n-cap">정원 (나 포함)</label><div class="stepper" role="group">'
+      + '<button type="button" data-action="cap-minus" aria-label="정원 한 명 줄이기">−</button>'
+      + '<input id="n-cap" name="capacity" type="number" inputmode="numeric" min="2" step="1" value="4" class="cap-input">'
+      + '<button type="button" data-action="cap-plus" aria-label="정원 한 명 늘리기">+</button><span class="unit">명</span></div>'
+      + '<p class="hint">2명 이상이면 몇 명이든 괜찮아요.</p><p class="err" data-err="capacity"></p></div>'
+      + '<div class="field"><span class="label" id="l-recruit">모집 기간</span><div class="inline range" role="group" aria-labelledby="l-recruit">'
+      + '<label class="sr" for="n-rs">모집 시작일</label><input id="n-rs" name="recruitStart" type="date" min="' + today + '" value="' + today + '">'
+      + '<span aria-hidden="true">~</span>'
+      + '<label class="sr" for="n-re">모집 마감일</label><input id="n-re" name="recruitEnd" type="date" min="' + today + '" value="' + R.addDays(today, 7) + '">'
+      + '</div><p class="hint">마감일이 가까운 글이 목록 위쪽에 보여요. 마감일이 지나면 신청을 받지 않아요.</p>'
+      + '<p class="err" data-err="recruitStart"></p><p class="err" data-err="recruitEnd"></p></div>'
       + '<div class="field"><span class="label" id="l-mode">진행 방식</span><div class="seg" role="radiogroup" aria-labelledby="l-mode">'
       + radioPill('mode', 'online', '온라인', 0, true) + radioPill('mode', 'offline', '오프라인', 1, false) + '</div>'
       + '<div class="field sub" id="place-field" hidden><label for="n-place">만날 곳</label><input id="n-place" name="place" maxlength="40" placeholder="예: 강남역 근처 스터디룸…" autocomplete="off"><p class="err" data-err="place"></p></div>'
@@ -2102,7 +2158,7 @@ body.in-room main { padding-bottom: 96px; }
       if (msg) { ctl.setAttribute('aria-invalid', 'true'); ctl.setAttribute('aria-describedby', el.id); }
       else { ctl.removeAttribute('aria-invalid'); ctl.removeAttribute('aria-describedby'); }
     });
-    const order = ['company', 'job', 'stage', 'interviewDate', 'jobRule', 'joinMode', 'capacity', 'mode', 'place', 'intro', 'username', 'nick', 'password', 'password2', 'current', 'next', 'next2'];
+    const order = ['company', 'job', 'stage', 'interviewDate', 'jobRule', 'joinMode', 'capacity', 'recruitStart', 'recruitEnd', 'mode', 'place', 'intro', 'username', 'nick', 'password', 'password2', 'current', 'next', 'next2'];
     const first = order.find(function (k) { return errors[k]; });
     if (first) {
       const el = $('[data-err="' + first + '"]', form);
@@ -2121,7 +2177,8 @@ body.in-room main { padding-bottom: 96px; }
     const f = {
       company: $('#n-company').value, job: readJob('n-job'), stage: checked('stage'),
       interviewDate: unknown ? null : ($('#n-date').value || null),
-      mode: checked('mode'), place: $('#n-place').value, capacity: Number($('#n-cap').textContent),
+      recruitStart: $('#n-rs').value, recruitEnd: $('#n-re').value,
+      mode: checked('mode'), place: $('#n-place').value, capacity: Number($('#n-cap').value),
       jobRule: checked('jobRule'), joinMode: checked('joinMode'),
       intro: $('#n-intro').value, nick: S.me().nick
     };
@@ -2266,6 +2323,7 @@ body.in-room main { padding-bottom: 96px; }
       + '<div><dt>전형</dt><dd>' + esc(p.stage) + '</dd></div>'
       + '<div><dt>진행</dt><dd>' + (p.mode === 'online' ? '온라인' : '오프라인 · ' + esc(p.place)) + '</dd></div>'
       + '<div><dt>인원</dt><dd>' + p.members.length + '/' + p.capacity + '명</dd></div>'
+      + '<div><dt>모집 기간</dt><dd>' + recruitRange(p) + '</dd></div>'
       + '<div><dt>방장</dt><dd>' + esc(host ? host.nick + ' · ' + host.job : p.job) + '</dd></div>'
       + '<div><dt>올린 때</dt><dd>' + esc(ago(p.createdAt, now)) + '</dd></div>'
       + '</dl>'
@@ -3244,8 +3302,8 @@ body.in-room main { padding-bottom: 96px; }
       case 'cap-minus':
       case 'cap-plus': {
         const o = $('#n-cap');
-        const v = Math.max(2, Math.min(6, Number(o.textContent) + (a === 'cap-plus' ? 1 : -1)));
-        o.textContent = String(v);
+        const cur = Math.round(Number(o.value)) || 2;
+        o.value = String(Math.max(2, Math.min(R.MAX_CAPACITY, cur + (a === 'cap-plus' ? 1 : -1))));
         break;
       }
       case 'open-apply': if (p) openApply(p); break;
@@ -3335,6 +3393,12 @@ body.in-room main { padding-bottom: 96px; }
       if (c) { c.hidden = t.value !== '__custom'; if (!c.hidden) c.focus(); }
     }
     if (t.name === 'mode' && t.closest('#new-form')) $('#place-field').hidden = t.value !== 'offline';
+    /* 관련 경험 '없음'은 다른 경험과 같이 고르지 않는다 */
+    if (t.name === 'tags' && t.checked) {
+      $$('input[name="tags"]', t.form).forEach(function (x) { if (x !== t && (t.value === '없음' || x.value === '없음')) x.checked = false; });
+    }
+    if (t.id === 'n-date' && t.value && $('#n-re')) { $('#n-re').max = t.value; if ($('#n-re').value > t.value) $('#n-re').value = t.value; }
+    if (t.id === 'n-rs' && $('#n-re')) { $('#n-re').min = t.value; if ($('#n-re').value < t.value) $('#n-re').value = t.value; }
     if (t.id === 'n-date-unknown') { $('#n-date').disabled = t.checked; if (t.checked) $('#n-date').value = ''; }
     if (t.closest('#apply-form')) { const p = S.post(ui.postId); if (p) updateApplyCheck(p); }
     if (t.id === 'u-show') $$('#auth-form input[name^="password"]').forEach(function (i) { i.type = t.checked ? 'text' : 'password'; });

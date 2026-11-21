@@ -44,7 +44,7 @@ service cloud.firestore {
       return pickList(d, 'times', ['평일 낮', '평일 저녁', '주말 낮', '주말 저녁'])
         && pickList(d, 'ways', ['온라인', '오프라인'])
         && pickList(d, 'practice', ['직무', 'PT', '인성', '토론', '영어'])
-        && pickList(d, 'tags', ['인턴', '현장실습', '프로젝트', '공모전', '자격증', '동아리', '연구실'])
+        && pickList(d, 'tags', ['인턴', '현장실습', '프로젝트', '공모전', '자격증', '동아리', '연구실', '없음'])
         && pickOne(d, 'region', ['서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'])
         && pickOne(d, 'exp', ['처음이에요', '1~2번 봤어요', '여러 번 봤어요'])
         && pickOne(d, 'passes', ['1곳', '2곳', '3곳', '4곳', '5곳 이상']);
@@ -63,7 +63,7 @@ service cloud.firestore {
     function validNewPost() {
       let d = request.resource.data;
       let uid = request.auth.uid;
-      let fields = ['company', 'job', 'jobKey', 'stage', 'interviewDate', 'mode', 'place', 'capacity',
+      let fields = ['company', 'job', 'jobKey', 'stage', 'interviewDate', 'recruitStart', 'recruitEnd', 'mode', 'place', 'capacity',
                     'jobRule', 'joinMode', 'intro', 'hostId', 'closed', 'createdAt', 'members', 'applicants'];
       return d.keys().hasAll(fields) && d.keys().hasOnly(fields)
         && d.hostId == uid
@@ -71,7 +71,10 @@ service cloud.firestore {
         && d.stage in ['1차 실무', '2차 임원·인성', 'PT', '토론', '기타']
         && (d.interviewDate == null || (d.interviewDate is string && d.interviewDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))
         && d.mode in ['online', 'offline'] && str(d.place, 0, 40)
-        && d.capacity is int && d.capacity >= 2 && d.capacity <= 6
+        && d.recruitStart is string && d.recruitStart.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && d.recruitEnd is string && d.recruitEnd.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && d.recruitStart <= d.recruitEnd
+        && d.capacity is int && d.capacity >= 2 && d.capacity <= 999
         && d.jobRule in ['same', 'diverse', 'any'] && d.joinMode in ['instant', 'approve']
         && str(d.intro, 0, 300)
         && d.closed == false
@@ -94,7 +97,7 @@ service cloud.firestore {
         && after.members is map && after.applicants is map
         && after.members.size() <= before.capacity
         && host in after.members && after.members[host] == before.members[host]
-        && after.applicants.size() <= 60;
+        && after.applicants.size() <= 300;
     }
 
     function joins(uid, before, after) {
@@ -112,7 +115,7 @@ service cloud.firestore {
         && uid in after.applicants
         && validEntry(after.applicants[uid]) && after.applicants[uid].status == 'pending'
         && jobAllowed(before, after.applicants[uid])
-        && after.applicants.size() <= 60;
+        && after.applicants.size() <= 300;
     }
 
     function cancels(uid, before, after) {
