@@ -539,6 +539,33 @@ body.in-room main { padding-bottom: 96px; }
 @media (max-width: 480px) { .profile-card { padding: 18px; } .pc-act { width: 100%; } .pc-act .btn { flex: 1; } }
 .counter { white-space: nowrap; flex: none; }
 
+/* ---------- 채용 일정: 직무별 보기 ---------- */
+.job-filter { display: grid; gap: 14px; margin: 20px 0 8px; padding: 18px; border: 1px solid var(--line); border-radius: var(--r-lg); }
+.jf-groups { display: flex; flex-wrap: wrap; gap: 8px; }
+.job-filter .fchip { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
+.job-filter .fchip .num { font-size: 13px; opacity: .7; }
+.jf-row { display: grid; grid-template-columns: 72px 1fr; gap: 8px 12px; align-items: start; }
+.jf-label { padding-top: 10px; color: var(--muted); font-size: 13px; font-weight: 600; }
+.jf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.jchip { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 12px; border-radius: var(--r-full); background: var(--soft); color: var(--body); font-size: 14px; font-weight: 500; text-decoration: none; white-space: nowrap; }
+.jchip .num { color: var(--muted); font-size: 12px; }
+.jchip:hover { color: var(--ink); background: var(--line-soft); }
+.jchip.on { background: var(--accent); color: var(--on-accent); }
+.jchip.on .num { color: inherit; opacity: .8; }
+.jobs-count { margin: 12px 0 0; }
+.job-cats { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+.cat-tag { padding: 3px 9px; border-radius: var(--r-full); font-size: 13px; font-weight: 600; }
+.cat-eng { background: var(--accent-soft); color: var(--accent-text); }
+.cat-biz { background: var(--diverse-bg); color: var(--diverse); }
+.cat-tag.on { outline: 2px solid currentColor; outline-offset: 1px; }
+@media (max-width: 480px) {
+  .job-filter { padding: 14px; }
+  .jf-row { grid-template-columns: 1fr; gap: 6px; }
+  .jf-label { padding-top: 0; }
+  .jchip { min-height: 40px; }
+}
+.job-filter .fchip.on .num { color: inherit; }
+
 </style>
 </head>
 <body>
@@ -561,8 +588,14 @@ body.in-room main { padding-bottom: 96px; }
 (function (root) {
   'use strict';
 
-  const JOBS = ['생산기술', '공정기술', '설비·보전', '품질', '연구개발', '설계', '생산관리', '구매·SCM',
-    '영업', '마케팅', '인사', '재무·회계', '경영지원', 'IT·SW', '데이터·AI'];
+  /* 직무 분류: 이공계 / 인문·상경 (글쓰기·신청의 직무 고르기와 채용 일정 필터가 같이 쓴다) */
+  const JOB_GROUPS = [
+    { key: 'eng', label: '이공계', jobs: ['생산기술', '공정기술', '설비·보전', '품질', '연구개발', '설계', '기계', '전기·전자',
+      '생산관리', '건설·토목', 'IT·SW', '데이터·AI'] },
+    { key: 'biz', label: '인문·상경', jobs: ['경영기획', '인사', '재무·회계', '경영지원', '사무·행정', '영업', '마케팅', 'MD',
+      '구매·SCM', '물류', '법무', '금융'] }
+  ];
+  const JOBS = JOB_GROUPS.reduce(function (all, g) { return all.concat(g.jobs); }, []);
 
   const STAGES = ['1차 실무', '2차 임원·인성', 'PT', '토론', '기타'];
 
@@ -588,7 +621,20 @@ body.in-room main { padding-bottom: 96px; }
     '생기': '생산기술', '생산기술직': '생산기술', '공정': '공정기술', '설비': '설비·보전', '보전': '설비·보전',
     '품질보증': '품질', '품질관리': '품질', 'qa': '품질', 'qc': '품질', 'r&d': '연구개발', 'rnd': '연구개발',
     '연구': '연구개발', 'scm': '구매·SCM', '구매': '구매·SCM', 'hr': '인사', '재무': '재무·회계', '회계': '재무·회계',
-    'it': 'IT·SW', 'sw': 'IT·SW', '소프트웨어': 'IT·SW', '데이터': '데이터·AI', 'ai': '데이터·AI'
+    'it': 'IT·SW', 'sw': 'IT·SW', '소프트웨어': 'IT·SW', '데이터': '데이터·AI', 'ai': '데이터·AI',
+    /* 이공계 */
+    '기계정비': '설비·보전', '전기정비': '설비·보전', '정비': '설비·보전', '하이테크진단/정비': '설비·보전', '차량': '설비·보전',
+    '기계설계': '설계', '전기': '전기·전자', '전자': '전기·전자', '회로': '전기·전자', '회로/fpga개발': '전기·전자',
+    '신호': '전기·전자', '정보통신': '전기·전자', '토목': '건설·토목', '건축': '건설·토목', '토건': '건설·토목', '궤도': '건설·토목',
+    '전산': 'IT·SW', '전산직': 'IT·SW', 'sw개발': 'IT·SW', '개발': 'IT·SW', '영상개발': '연구개발',
+    /* 인문·상경 */
+    '기획': '경영기획', '전략': '경영기획', '전략기획': '경영기획', '사업기획': '경영기획', '디지털기획': '경영기획',
+    'hr': '인사', '인사노무': '인사', '노무': '인사', '재경': '재무·회계', '세무': '재무·회계', 'xbrl공시': '재무·회계',
+    '총무': '경영지원', '총무·비서': '경영지원', '지원': '경영지원', '비서': '경영지원',
+    '사무': '사무·행정', '사무직': '사무·행정', '행정': '사무·행정', '일반행정': '사무·행정', '경영일반': '사무·행정', '공공행정': '사무·행정', '공공행정 지원': '사무·행정',
+    '영업관리': '영업', '영업지원': '영업', '해외영업': '영업', '홍보': '마케팅', 'pr': '마케팅', '브랜드': '마케팅',
+    '상품기획': 'MD', 'md': 'MD', '구매/scm': '구매·SCM', '물류관리': '물류', '법률': '법무', '컴플라이언스': '법무',
+    '은행': '금융', '금융일반': '금융', '금융사무': '금융', '보험': '금융', '증권': '금융'
   };
 
   function squash(s) {
@@ -602,6 +648,17 @@ body.in-room main { padding-bottom: 96px; }
   function jobKey(job) {
     const k = squash(job);
     return KEY_MAP[k] || k;
+  }
+
+  /* 정해진 직무 목록에 들어가면 그 이름, 아니면 '' */
+  function jobCategory(job) {
+    const key = jobKey(job);
+    return JOBS.find(function (j) { return squash(j) === key; }) || '';
+  }
+  function jobGroup(job) {
+    const c = jobCategory(job);
+    const g = JOB_GROUPS.find(function (x) { return x.jobs.indexOf(c) >= 0; });
+    return g ? g.key : '';
   }
 
   function canonicalJob(job) {
@@ -853,7 +910,7 @@ body.in-room main { padding-bottom: 96px; }
   }
 
   const Rules = {
-    JOBS: JOBS, STAGES: STAGES, COMPANIES: COMPANIES, RULES: RULES, JOIN: JOIN, STATUS: STATUS,
+    JOBS: JOBS, JOB_GROUPS: JOB_GROUPS, jobCategory: jobCategory, jobGroup: jobGroup, STAGES: STAGES, COMPANIES: COMPANIES, RULES: RULES, JOIN: JOIN, STATUS: STATUS,
     squash: squash, jobKey: jobKey, canonicalJob: canonicalJob,
     todayKST: todayKST, addDays: addDays, daysUntil: daysUntil, ddayLabel: ddayLabel, dateLabel: dateLabel, isYmd: isYmd,
     statusOf: statusOf, memberOf: memberOf, applicationOf: applicationOf,
@@ -870,7 +927,8 @@ body.in-room main { padding-bottom: 96px; }
 
 /* 채용 일정 (사람이 공고문을 보고 직접 정리한 목록)
    - checkedAt: 이 날짜에 원문으로 확인함. 일정은 회사 사정으로 바뀔 수 있어서 화면에 늘 원문 링크를 같이 보여 준다.
-   - apply: 서류 접수 기간(start 없으면 마감만 표시), steps: 그다음 전형 일정.
+   - apply: 서류 접수 기간(start 없으면 마감만 표시, rolling: true면 채용 시 마감), steps: 그다음 전형 일정.
+   - jobs: 공고에 적힌 직무 이름 그대로. 화면은 Rules.jobCategory로 이공계/인문·상경 분류에 맞춘다.
      날짜를 정확히 모르면 when(보여 줄 글)과 sort(정렬용 날짜)만 적는다. 없는 날짜를 지어내지 않는다.
    - url: 지원·원문 링크, source: 일정을 확인한 곳 */
 (function (root) {
@@ -952,8 +1010,48 @@ body.in-room main { padding-bottom: 96px; }
         steps: [
           { label: '인턴실습 (5주)', when: '12월 말 ~ 1월 말', sort: '2026-12-28' }
         ],
+        flow: 'AI 역량면접 → 1차 실무면접 → 인턴실습(5주) → 2차 임원면접',
         url: 'https://ehyundai-recruit.com/',
         source: { name: '대학 학과 공지', url: 'https://cse.snu.ac.kr/en/community/notice/25805' }
+      },
+      {
+        id: 'seoulmetro-2026h2',
+        company: '서울교통공사',
+        title: '2026년 하반기 신입사원(채용형 인턴) 공개채용',
+        jobs: ['사무', '차량', '전기', '정보통신', '궤도', '신호', '기계', '전자', '토목', '건축'],
+        apply: { start: '2026-11-03', end: '2026-11-09', endTime: '18:00' },
+        steps: [
+          { label: '서류전형 발표', start: '2026-11-19' },
+          { label: '필기시험·인성검사', start: '2026-11-28' },
+          { label: '면접시험', start: '2026-12-14', end: '2026-12-18', interview: true },
+          { label: '최종 합격 발표', start: '2027-01-12' }
+        ],
+        note: '정규직 전환 시 일반직 7급 · 학력 제한 없음',
+        url: 'https://linkareer.com/activity/357927',
+        source: { name: '링커리어 (공사 공고 일정 정리)', url: 'https://community.linkareer.com/employment_data/6697292' }
+      },
+      {
+        id: 'seis-2027',
+        company: '한국사회적기업진흥원',
+        title: '2027년 기능직(총무·비서) 및 기간제근로자 채용',
+        jobs: ['총무·비서', '영문에디터', '공공행정 지원'],
+        apply: { start: '2026-11-10', end: '2026-11-25' },
+        steps: [],
+        note: '정규직은 기능직(총무·비서) 1명 · 나머지는 기간제',
+        url: 'https://socialenterprise.brms.kr',
+        source: { name: '정책브리핑 채용정보 (나라일터)', url: 'https://www.korea.kr/archive/recruitInfoView.do?dataId=399086' }
+      },
+      {
+        id: 'samil-xbrl-2611',
+        company: '삼일회계법인',
+        title: 'AX Node XBRL센터 신입 채용',
+        jobs: ['XBRL 공시'],
+        apply: { start: '2026-11-11', rolling: true },
+        steps: [],
+        flow: '서류전형 → 인성검사(필요시) → 면접전형 → 최종 합격',
+        note: '재무제표·주석 XBRL 공시 검토 업무 · 채용 시 마감',
+        url: 'https://linkareer.com/activity/363753',
+        source: { name: '링커리어 공고', url: 'https://linkareer.com/activity/363753' }
       },
       {
         id: 'ekr-2026',
@@ -1536,7 +1634,11 @@ body.in-room main { padding-bottom: 96px; }
     const custom = current && !preset;
     return '<div class="job-pick"><select id="' + id + '" name="' + id + '" data-job-select>'
       + '<option value="">직무 고르기</option>'
-      + R.JOBS.map(function (j) { return '<option' + (j === current ? ' selected' : '') + '>' + esc(j) + '</option>'; }).join('')
+      + R.JOB_GROUPS.map(function (g) {
+        return '<optgroup label="' + esc(g.label) + '">'
+          + g.jobs.map(function (j) { return '<option' + (j === current ? ' selected' : '') + '>' + esc(j) + '</option>'; }).join('')
+          + '</optgroup>';
+      }).join('')
       + '<option value="__custom"' + (custom ? ' selected' : '') + '>직접 입력</option></select>'
       + '<label class="sr" for="' + id + '-custom">직무 직접 입력</label>'
       + '<input id="' + id + '-custom" name="' + id + '-custom" class="job-custom" maxlength="20" placeholder="직무 이름…" autocomplete="off" spellcheck="false" value="' + (custom ? esc(current) : '') + '"' + (custom ? '' : ' hidden') + '></div>';
@@ -2373,6 +2475,7 @@ body.in-room main { padding-bottom: 96px; }
   function jobState(j, today) {
     const a = j.apply || {};
     if (a.start && a.start > today) return 'soon';
+    if (a.rolling) return 'open';
     if (a.end && a.end >= today) return 'open';
     return 'process';
   }
@@ -2382,6 +2485,7 @@ body.in-room main { padding-bottom: 96px; }
   }
   function jobSortKey(j, today) {
     const state = jobState(j, today);
+    if (state === 'open' && j.apply.rolling) return '9999-12-30';
     if (state !== 'process') return (state === 'open' ? j.apply.end : j.apply.start);
     const n = nextStep(j, today);
     return n ? stepSort(n) : '9999-12-31';
@@ -2392,14 +2496,14 @@ body.in-room main { padding-bottom: 96px; }
     return S.posts().filter(function (p) { return R.squash(p.company) === key && R.statusOf(p, now) === 'open'; }).length;
   }
   const JOB_STATE = { open: '접수 중', soon: '접수 예정', process: '전형 진행 중' };
-  function jobCard(j, today, now) {
+  function jobCard(j, today, now, f) {
     const state = jobState(j, today);
     const a = j.apply || {};
     const n = nextStep(j, today);
     const count = openStudies(j.company);
-    let applyText = a.start ? rangeLabel(a.start, a.end) : '~' + R.dateLabel(a.end);
+    let applyText = a.rolling ? R.dateLabel(a.start) + '~ 채용 시 마감' : a.start ? rangeLabel(a.start, a.end) : '~' + R.dateLabel(a.end);
     if (a.endTime) applyText += ' ' + a.endTime;
-    const left = state === 'open' ? ' <span class="dleft">' + esc(R.ddayLabel(R.daysUntil(a.end, now))) + '</span>' : (state === 'process' ? ' <span class="dleft done">마감</span>' : '');
+    const left = a.rolling ? '' : state === 'open' ? ' <span class="dleft">' + esc(R.ddayLabel(R.daysUntil(a.end, now))) + '</span>' : (state === 'process' ? ' <span class="dleft done">마감</span>' : '');
     let next = '';
     if (n) next = '<div class="next"><dt>다음 일정</dt><dd>' + esc(n.label) + ' · ' + esc(stepWhen(n)) + '</dd></div>';
     else if (state === 'process') next = '<div class="next"><dt>다음 일정</dt><dd>' + (j.flow ? esc(j.flow) + ' (일정은 개별 안내)' : '공고문에 아직 안 나왔어요. 개별 안내를 기다려 주세요.') + '</dd></div>';
@@ -2407,6 +2511,9 @@ body.in-room main { padding-bottom: 96px; }
       + '<div class="job-top"><span class="company">' + esc(j.company) + '</span><span class="pill js-' + state + '">' + JOB_STATE[state] + '</span></div>'
       + '<h2 class="job-title">' + esc(j.title) + '</h2>'
       + '<p class="job-tags">' + j.jobs.map(esc).join(' · ') + '</p>'
+      + '<p class="job-cats">' + jobCats(j).map(function (c) {
+        return '<span class="cat-tag cat-' + R.jobGroup(c) + (f && f.cat === c ? ' on' : '') + '">' + esc(c) + '</span>';
+      }).join('') + '</p>'
       + '<dl class="job-dates"><div><dt>서류 접수</dt><dd>' + esc(applyText) + left + '</dd></div>' + next + '</dl>'
       + (j.note ? '<p class="job-note">' + esc(j.note) + '</p>' : '')
       + '<div class="job-act"><a class="btn btn-primary btn-small" href="#new?company=' + encodeURIComponent(j.company) + '">이 공고로 면스 모집</a>'
@@ -2415,22 +2522,68 @@ body.in-room main { padding-bottom: 96px; }
       + '<p class="job-src">일정 확인: <a href="' + esc(j.source.url) + '" target="_blank" rel="noopener noreferrer">' + esc(j.source.name) + '</a></p>'
       + '</li>';
   }
+  /* 공고가 뽑는 직무 분류 (중복 없이) */
+  function jobCats(j) {
+    const out = [];
+    j.jobs.forEach(function (x) { const c = R.jobCategory(x); if (c && out.indexOf(c) < 0) out.push(c); });
+    return out;
+  }
+  function jobMatches(j, f) {
+    const cats = jobCats(j);
+    if (f.cat) return cats.indexOf(f.cat) >= 0;
+    if (f.group !== 'all') return cats.some(function (c) { return R.jobGroup(c) === f.group; });
+    return true;
+  }
+  function jobsHash(f) {
+    const q = new URLSearchParams();
+    if (f.group !== 'all') q.set('group', f.group);
+    if (f.cat) q.set('cat', f.cat);
+    const qs = q.toString();
+    return '#jobs' + (qs ? '?' + qs : '');
+  }
+  function jobFilterBar(f) {
+    const groups = [{ key: 'all', label: '전체' }].concat(R.JOB_GROUPS.map(function (g) { return { key: g.key, label: g.label }; }));
+    const count = function (test) { return JOBS.filter(test).length; };
+    const seg = '<div class="seg jf-groups" role="group" aria-label="계열">' + groups.map(function (g) {
+      const n = count(function (j) { return jobMatches(j, { group: g.key, cat: '' }); });
+      const on = f.group === g.key && !f.cat;
+      return '<a class="fchip' + (on ? ' on' : '') + '" href="' + jobsHash({ group: g.key, cat: '' }) + '"' + (on ? ' aria-current="true"' : '') + '>'
+        + esc(g.label) + ' <span class="num">' + n + '</span></a>';
+    }).join('') + '</div>';
+    const shownGroups = f.group === 'all' ? R.JOB_GROUPS : R.JOB_GROUPS.filter(function (g) { return g.key === f.group; });
+    const cats = shownGroups.map(function (g) {
+      const chips = g.jobs.map(function (c) {
+        const n = count(function (j) { return jobCats(j).indexOf(c) >= 0; });
+        if (!n) return '';
+        const on = f.cat === c;
+        const next = on ? { group: f.group, cat: '' } : { group: f.group === 'all' ? 'all' : g.key, cat: c };
+        return '<a class="jchip' + (on ? ' on' : '') + '" href="' + jobsHash(next) + '"' + (on ? ' aria-current="true"' : '') + '>'
+          + esc(c) + ' <span class="num">' + n + '</span></a>';
+      }).join('');
+      return chips ? '<div class="jf-row"><span class="jf-label">' + esc(g.label) + '</span><div class="jf-chips">' + chips + '</div></div>' : '';
+    }).join('');
+    return '<nav class="job-filter" aria-label="직무별로 보기">' + seg + cats + '</nav>';
+  }
   function renderJobs() {
     const now = Date.now();
     const today = R.todayKST(now);
-    const list = JOBS.slice().sort(function (x, y) { return jobSortKey(x, today) < jobSortKey(y, today) ? -1 : 1; });
+    const f = ui.jobFilter || { group: 'all', cat: '' };
+    const list = JOBS.filter(function (j) { return jobMatches(j, f); })
+      .sort(function (x, y) { return jobSortKey(x, today) < jobSortKey(y, today) ? -1 : 1; });
     const checked = window.JOBS && window.JOBS.checkedAt;
     view.innerHTML = '<a class="back" href="#board">← 모집 글</a><h1 class="page-h">채용 일정</h1>'
       + '<p class="lead jobs-lead">면접을 앞둔 공고를 모았어요. 같은 공고에 지원했다면 바로 면스를 모집해 보세요.</p>'
       + '<p class="jobs-check">' + (checked ? esc(R.dateLabel(checked)) + '에 공고문으로 확인한 일정이에요. ' : '') + '일정은 회사 사정으로 바뀔 수 있으니 지원 전에 원문을 꼭 확인하세요.</p>'
-      + (list.length ? '<ol class="jobs">' + list.map(function (j) { return jobCard(j, today, now); }).join('') + '</ol>'
-        : '<div class="empty"><p class="empty-t">지금 정리된 채용 일정이 없어요.</p></div>');
+      + jobFilterBar(f)
+      + '<p class="count jobs-count" aria-live="polite">' + (f.cat ? esc(f.cat) + ' 직무 ' : f.group !== 'all' ? esc(R.JOB_GROUPS.find(function (g) { return g.key === f.group; }).label) + ' ' : '') + '공고 ' + list.length + '개</p>'
+      + (list.length ? '<ol class="jobs">' + list.map(function (j) { return jobCard(j, today, now, f); }).join('') + '</ol>'
+        : '<div class="empty"><p class="empty-t">이 직무로 정리된 공고가 아직 없어요.</p><a class="btn" href="#jobs">전체 공고 보기</a></div>');
   }
   function upcomingHtml() {
     const today = R.todayKST(Date.now());
     const rows = [];
     JOBS.forEach(function (j) {
-      if (jobState(j, today) === 'open') rows.push({ j: j, label: '서류 마감', when: R.dateLabel(j.apply.end), sort: j.apply.end });
+      if (jobState(j, today) === 'open' && !j.apply.rolling) rows.push({ j: j, label: '서류 마감', when: R.dateLabel(j.apply.end), sort: j.apply.end });
       (j.steps || []).forEach(function (st) {
         if (stepEnd(st) >= today) rows.push({ j: j, label: shortLabel(st.label), when: stepWhen(st), sort: stepSort(st), interview: st.interview });
       });
@@ -2491,7 +2644,12 @@ body.in-room main { padding-bottom: 96px; }
       const next = cut >= 0 ? (new URLSearchParams(raw.slice(cut + 1)).get('next') || '') : '';
       return { route: h, next: safeNext(next) };
     }
-    if (h === 'jobs') return { route: 'jobs' };
+    if (h === 'jobs') {
+      const q = new URLSearchParams(cut >= 0 ? raw.slice(cut + 1) : '');
+      const group = R.JOB_GROUPS.some(function (g) { return g.key === q.get('group'); }) ? q.get('group') : 'all';
+      const cat = R.JOBS.indexOf(q.get('cat') || '') >= 0 ? q.get('cat') : '';
+      return { route: 'jobs', jobFilter: { group: cat ? (group === 'all' ? 'all' : group) : group, cat: cat } };
+    }
     if (h === 'chat') return { route: 'chat' };
     const c = /^chat-([a-z0-9]{4,16})$/.exec(h);
     if (c) return { route: 'room', postId: c[1] };
@@ -2558,11 +2716,14 @@ body.in-room main { padding-bottom: 96px; }
       r = parseHash();
     }
     ui.next = r.next || 'board';
+    if (r.route === 'jobs') ui.jobFilter = r.jobFilter;
+    /* 채용 일정에서 직무 필터만 바꿀 때는 스크롤을 그대로 둔다 */
+    const keepScroll = ui.route === 'jobs' && r.route === 'jobs';
     ui.route = r.route;
     ui.postId = r.postId || null;
     closeSheet();
     if (r.route === 'room') delete view.dataset.room;
-    window.scrollTo(0, 0);
+    if (!keepScroll) window.scrollTo(0, 0);
     render();
   }
 
