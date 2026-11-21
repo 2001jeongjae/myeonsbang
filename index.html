@@ -585,7 +585,7 @@ body.in-room main { padding-bottom: 96px; }
 <header class="top">
   <div class="top-in">
     <a class="logo" href="#board" aria-label="면스방 처음 화면" translate="no"><span class="logo-mark" aria-hidden="true">면</span><span class="logo-text">면스방</span></a>
-    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a href="#me" data-tab="me" aria-label="마이페이지"><span class="wide-only">마이페이지</span><span class="narrow-only" aria-hidden="true">MY</span></a><a href="#chat" data-tab="chat">메시지</a><a class="nav-wide" href="#jobs" data-tab="jobs">채용 일정</a><a class="nav-wide" href="#about" data-tab="about">이용 안내</a><a id="auth-link" class="nav-wide" href="#login" data-tab="login">로그인</a></nav>
+    <nav class="nav" aria-label="메뉴"><a href="#board" data-tab="board">모집 글</a><a id="me-link" href="#me" data-tab="me" aria-label="마이페이지"><span class="wide-only">마이페이지</span><span class="narrow-only" aria-hidden="true">MY</span></a><a href="#chat" data-tab="chat">메시지</a><a class="nav-wide" href="#jobs" data-tab="jobs">채용 일정</a><a class="nav-wide" href="#about" data-tab="about">이용 안내</a></nav>
     <a class="btn btn-primary btn-new" href="#new"><span class="wide-only">모집 </span>글 쓰기</a>
   </div>
 </header>
@@ -2371,11 +2371,26 @@ body.in-room main { padding-bottom: 96px; }
       go(next);
     });
   }
+  /* 머리 메뉴: 로그인 전에는 '로그인', 로그인 뒤에는 '마이페이지'(좁은 화면은 'MY') */
   function renderAuthLink() {
-    const a = $('#auth-link');
+    const a = $('#me-link');
     if (!a) return;
-    const u = S.me();
-    a.hidden = !!u.signedIn;
+    const inn = !!S.me().signedIn;
+    if (a.dataset.state === String(inn)) return;
+    a.dataset.state = String(inn);
+    const cur = (inn && (ui.route === 'me' || ui.route === 'profile')) || (!inn && (ui.route === 'login' || ui.route === 'signup'));
+    if (cur) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    if (inn) {
+      a.setAttribute('href', '#me');
+      a.dataset.tab = 'me';
+      a.setAttribute('aria-label', '마이페이지');
+      a.innerHTML = '<span class="wide-only">마이페이지</span><span class="narrow-only" aria-hidden="true">MY</span>';
+    } else {
+      a.setAttribute('href', '#login');
+      a.dataset.tab = 'login';
+      a.removeAttribute('aria-label');
+      a.innerHTML = '로그인';
+    }
   }
 
   /* ---------- 메시지 ---------- */
@@ -2884,7 +2899,7 @@ body.in-room main { padding-bottom: 96px; }
     if (ui.route !== 'room') { delete view.dataset.room; document.body.classList.remove('in-room'); if (S.closeRoom) S.closeRoom(); }
     if (ui.route !== 'new') ui.dirty = false;
     $$('[data-tab]').forEach(function (a) {
-      if (a.dataset.tab === ui.route || (a.dataset.tab === 'chat' && ui.route === 'room') || (a.dataset.tab === 'me' && ui.route === 'profile')) a.setAttribute('aria-current', 'page');
+      if (a.dataset.tab === ui.route || (a.dataset.tab === 'chat' && ui.route === 'room') || (a.dataset.tab === 'me' && ui.route === 'profile') || (a.dataset.tab === 'login' && ui.route === 'signup')) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
     });
     if (ui.route !== 'post') renderActionBar(null);
