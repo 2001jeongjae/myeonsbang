@@ -807,6 +807,67 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
 .ticket .tk-body { display: flex; flex-direction: column; gap: 7px; }
 .ticket .tk-foot { margin-top: auto; }
 
+/* 채용 달력 */
+.view-switch { display: inline-flex; gap: 4px; padding: 4px; margin: 4px 0 0; border-radius: 14px; background: var(--strong); }
+.vs-tab { display: inline-flex; align-items: center; min-height: 40px; padding: 0 18px; border-radius: 10px; color: var(--body); font-weight: 650; text-decoration: none; }
+.vs-tab:hover { color: var(--ink); background: rgba(255, 255, 255, .6); }
+.vs-tab.on { background: var(--canvas); color: var(--ink); box-shadow: 0 1px 2px rgba(20, 32, 54, .12); }
+.cal { margin-top: 12px; padding: 18px; border-radius: var(--r-lg); background: var(--canvas); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.cal-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 12px; }
+.cal-title { margin: 0 4px; font-size: 22px; font-weight: 800; letter-spacing: -.04em; font-variant-numeric: tabular-nums; min-width: 7.5em; text-align: center; }
+.cal-nav { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--canvas); font-size: 22px; line-height: 1; cursor: pointer; color: var(--ink); }
+.cal-nav:hover { border-color: var(--field); background: var(--soft); }
+.cal-today { min-height: 40px; }
+.cal-legend { margin: 0 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; color: var(--muted); font-size: 13.5px; }
+.lg { display: inline-flex; align-items: center; gap: 6px; }
+.lg::before { content: ""; width: 10px; height: 10px; border-radius: 3px; }
+.lg.due::before { background: var(--ink); }
+.lg.iv::before { background: var(--accent); }
+.cal-dow { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 0 0 6px; color: var(--muted); font-size: 13px; font-weight: 600; text-align: center; }
+.cal-dow span:first-child { color: var(--bad); }
+.cal-dow span:last-child { color: var(--accent); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.cal-cell { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 3px; min-height: 104px; padding: 6px; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--canvas); text-align: left; cursor: pointer; font: inherit; color: var(--ink); min-width: 0; }
+.cal-cell.blank { border: 0; background: transparent; cursor: default; }
+.cal-cell:hover { border-color: var(--field); }
+.cal-cell.past { background: #fafbfc; }
+.cal-cell.past .cal-d, .cal-cell.past .cal-ev { opacity: .55; }
+.cal-cell.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.cal-d { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.6; }
+.cal-cell.sun .cal-d { color: var(--bad); }
+.cal-cell.sat .cal-d { color: var(--accent); }
+.cal-cell.today .cal-d { align-self: flex-start; padding: 0 7px; border-radius: 999px; background: var(--ink); color: #fff; }
+.cal-n { display: none; }
+.cal-evs { display: grid; gap: 2px; min-width: 0; }
+.cal-ev { display: block; padding: 1px 6px; border-radius: 5px; font-size: 12px; font-weight: 600; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-ev.due { background: var(--ink); color: #fff; }
+.cal-ev.iv { background: var(--accent-soft); color: var(--accent-text); }
+.cal-more { font-size: 12px; color: var(--muted); font-weight: 600; padding-left: 4px; }
+.cal-day { margin-top: 14px; padding: 18px 20px; border-radius: var(--r-md); background: var(--canvas); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.cal-day h3 { display: flex; align-items: baseline; gap: 6px; margin: 0 0 8px; font-size: 18px; }
+.cal-list { list-style: none; margin: 0; padding: 0; }
+.cal-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px 12px; padding: 10px 0; border-bottom: 1px solid var(--line-soft); }
+.cal-row:last-child { border-bottom: 0; }
+.cal-kind { padding: 2px 8px; border-radius: 6px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.cal-kind.due { background: var(--ink); color: #fff; }
+.cal-kind.iv { background: var(--accent-soft); color: var(--accent-text); }
+.cal-what { min-width: 0; font-size: 15px; }
+.cal-act { display: flex; gap: 14px; }
+.cal-act .link { --ul: 10px; min-height: 44px; display: inline-flex; align-items: center; font-size: 14px; }
+.cal-hint { margin-top: 12px; font-size: 14px; }
+@media (max-width: 599px) {
+  .cal { padding: 12px 8px; margin-left: -8px; margin-right: -8px; }
+  .cal-head { padding: 0 4px; }
+  .cal-legend { margin: 4px 0 0; width: 100%; }
+  .cal-grid, .cal-dow { gap: 2px; }
+  .cal-cell { min-height: 56px; padding: 4px 2px; align-items: center; border-radius: 8px; }
+  .cal-cell.today .cal-d { align-self: center; }
+  .cal-evs { display: none; }
+  .cal-n { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--ink); color: #fff; font-size: 11.5px; font-weight: 700; }
+  .cal-row { grid-template-columns: auto minmax(0, 1fr); }
+  .cal-act { grid-column: 1 / -1; }
+}
+
 </style>
 </head>
 <body>
@@ -3210,12 +3271,12 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
   }
   /* ---------- 채용 일정 필터: 직무(대분류→상세)·채용형태·기업·지역·산업·검색 ---------- */
   const T = window.TAXO;
-  const FKEYS = ['duty', 'sub', 'type', 'corp', 'region', 'ind', 'q'];
+  const FKEYS = ['duty', 'sub', 'type', 'corp', 'region', 'ind', 'q', 'view'];
   const FTABS = [
     { key: 'duty', label: '직무' }, { key: 'type', label: '채용형태', list: T.TYPES }, { key: 'corp', label: '기업', list: T.CORPS },
     { key: 'region', label: '지역', list: T.REGIONS }, { key: 'ind', label: '산업', list: T.INDUSTRIES }
   ];
-  function emptyFilter() { return { duty: '', sub: '', type: '', corp: '', region: '', ind: '', q: '' }; }
+  function emptyFilter() { return { duty: '', sub: '', type: '', corp: '', region: '', ind: '', q: '', view: '' }; }
   function jobDuties(j) {
     const out = [];
     (j.duties || []).forEach(function (s) { const d = T.SUB_TO_DUTY[s]; if (d && out.indexOf(d) < 0) out.push(d); });
@@ -3288,7 +3349,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
     if (!picked.length) return '';
     return '<div class="jf-active">' + picked.map(function (p) {
       return '<a class="jf-pill" href="' + jobsHash(Object.assign({}, f, p.drop)) + '" aria-label="' + esc(p.label) + ' 필터 빼기">' + esc(p.label) + ' <span aria-hidden="true">×</span></a>';
-    }).join('') + '<a class="link jf-reset" href="#jobs">모두 지우기</a></div>';
+    }).join('') + '<a class="link jf-reset" href="' + jobsHash(Object.assign(emptyFilter(), { view: f.view })) + '">모두 지우기</a></div>';
   }
   function jobFilterBar(f) {
     const tab = ui.jobTab || 'duty';
@@ -3305,12 +3366,89 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
       + '<div class="jf-panel" id="jf-panel">' + jobFilterPanel(f) + '</div>'
       + '</section>';
   }
+  /* ---------- 채용 달력: 날짜마다 서류 마감과 면접 일정 ---------- */
+  function calEvents(f) {
+    const ev = {};
+    const add = function (d, e) { if (!d) return; (ev[d] = ev[d] || []).push(e); };
+    JOBS.forEach(function (j) {
+      if (!jobMatches(j, f)) return;
+      if (j.apply && j.apply.end && !j.apply.rolling) add(j.apply.end, { kind: 'due', j: j, label: '서류 마감' + (j.apply.endTime ? ' ' + j.apply.endTime : '') });
+      (j.steps || []).forEach(function (st) {
+        if (st.interview && st.start) add(st.start, { kind: 'iv', j: j, label: shortLabel(st.label) });
+      });
+    });
+    return ev;
+  }
+  function monthOf(ymd) { return ymd.slice(0, 7); }
+  function shiftMonth(ym, n) {
+    const y = Number(ym.slice(0, 4)), m = Number(ym.slice(5, 7)) - 1 + n;
+    const d = new Date(Date.UTC(y, m, 1));
+    return d.toISOString().slice(0, 7);
+  }
+  function renderCalendar(box, f, today) {
+    const ym = ui.calMonth || monthOf(today);
+    ui.calMonth = ym;
+    const ev = calEvents(f);
+    const first = ym + '-01';
+    const startDow = new Date(first + 'T00:00:00Z').getUTCDay();
+    const days = new Date(Date.UTC(Number(ym.slice(0, 4)), Number(ym.slice(5, 7)), 0)).getUTCDate();
+    let monthDue = 0;
+    let cells = '';
+    for (let i = 0; i < startDow; i++) cells += '<div class="cal-cell blank" aria-hidden="true"></div>';
+    for (let d = 1; d <= days; d++) {
+      const ymd = ym + '-' + String(d).padStart(2, '0');
+      const list = (ev[ymd] || []).slice().sort(function (a, b) { return a.kind === b.kind ? (a.j.company < b.j.company ? -1 : 1) : (a.kind === 'due' ? -1 : 1); });
+      monthDue += list.filter(function (e) { return e.kind === 'due'; }).length;
+      const dow = (startDow + d - 1) % 7;
+      const cls = ['cal-cell', ymd === today ? 'today' : '', ymd < today ? 'past' : '', ui.calDay === ymd ? 'on' : '', dow === 0 ? 'sun' : '', dow === 6 ? 'sat' : '', list.length ? 'has' : ''].filter(Boolean).join(' ');
+      const shown = list.slice(0, 3);
+      cells += '<button type="button" class="' + cls + '" data-action="cal-day" data-day="' + ymd + '" aria-pressed="' + (ui.calDay === ymd) + '"'
+        + ' aria-label="' + (Number(ym.slice(5, 7))) + '월 ' + d + '일' + (list.length ? ', 일정 ' + list.length + '개' : '') + '">'
+        + '<span class="cal-d">' + d + '</span>'
+        + (list.length ? '<span class="cal-n" aria-hidden="true">' + list.length + '</span>' : '')
+        + '<span class="cal-evs" aria-hidden="true">' + shown.map(function (e) {
+          return '<span class="cal-ev ' + e.kind + '">' + esc(e.j.company) + '</span>';
+        }).join('') + (list.length > 3 ? '<span class="cal-more">+' + (list.length - 3) + '</span>' : '') + '</span></button>';
+    }
+    const y = ym.slice(0, 4), m = Number(ym.slice(5, 7));
+    let html = '<section class="cal" aria-label="채용 달력">'
+      + '<div class="cal-head"><button type="button" class="cal-nav" data-action="cal-prev" aria-label="이전 달">‹</button>'
+      + '<h2 class="cal-title">' + y + '년 ' + m + '월</h2>'
+      + '<button type="button" class="cal-nav" data-action="cal-next" aria-label="다음 달">›</button>'
+      + (monthOf(today) !== ym ? '<button type="button" class="btn btn-small cal-today" data-action="cal-today">오늘</button>' : '')
+      + '<p class="cal-legend"><span class="lg due">서류 마감</span><span class="lg iv">면접</span> · 이번 달 마감 ' + monthDue + '개</p></div>'
+      + '<div class="cal-dow" aria-hidden="true">' + ['일', '월', '화', '수', '목', '금', '토'].map(function (w) { return '<span>' + w + '</span>'; }).join('') + '</div>'
+      + '<div class="cal-grid">' + cells + '</div></section>';
+    const day = ui.calDay && monthOf(ui.calDay) === ym ? ui.calDay : null;
+    if (day) {
+      const list = ev[day] || [];
+      html += '<section class="cal-day" aria-live="polite"><h3>' + esc(R.dateLabel(day)) + ' 일정 <span class="num">' + list.length + '</span></h3>'
+        + (list.length ? '<ul class="cal-list">' + list.map(function (e) {
+          return '<li class="cal-row"><span class="cal-kind ' + e.kind + '">' + esc(e.label) + '</span>'
+            + '<span class="cal-what"><b>' + esc(e.j.company) + '</b> ' + esc(e.j.title) + '</span>'
+            + '<span class="cal-act"><a class="link" href="#new?company=' + encodeURIComponent(e.j.company) + '">면스 모집</a>'
+            + '<a class="link ext" href="' + esc(e.j.url) + '" target="_blank" rel="noopener noreferrer">원문<span class="sr"> (새 창)</span></a></span></li>';
+        }).join('') + '</ul>' : '<p class="muted">이 날은 마감하는 공고가 없어요.</p>')
+        + '</section>';
+    } else {
+      html += '<p class="muted cal-hint">날짜를 누르면 그날 마감하는 공고를 볼 수 있어요.</p>';
+    }
+    box.innerHTML = jobFilterActive(f) + html;
+  }
+  function viewSwitch(f) {
+    const tab = function (v, label) {
+      const on = (f.view || '') === v;
+      return '<a class="vs-tab' + (on ? ' on' : '') + '" href="' + jobsHash(Object.assign({}, f, { view: v })) + '"' + (on ? ' aria-current="true"' : '') + '>' + label + '</a>';
+    };
+    return '<nav class="view-switch" aria-label="보기 방식">' + tab('', '목록') + tab('cal', '달력') + '</nav>';
+  }
   function renderJobList() {
     const box = $('#jobs-list');
     if (!box) return;
     const now = Date.now();
     const today = R.todayKST(now);
     const f = ui.jobFilter;
+    if (f.view === 'cal') { renderCalendar(box, f, today); return; }
     const list = JOBS.filter(function (j) { return jobMatches(j, f); })
       .sort(function (x, y) { return jobSortKey(x, today) < jobSortKey(y, today) ? -1 : 1; });
     box.innerHTML = jobFilterActive(f)
@@ -3323,6 +3461,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
     view.innerHTML = '<a class="back" href="#board">← 모집 글</a><h1 class="page-h">채용 일정</h1>'
       + '<p class="lead jobs-lead">면접을 앞둔 공고를 모았어요. 같은 공고에 지원했다면 바로 면스를 모집해 보세요.</p>'
       + '<p class="jobs-check">' + jobsCheckHtml() + '</p>'
+      + viewSwitch(ui.jobFilter)
       + jobFilterBar(ui.jobFilter)
       + '<div id="jobs-list"></div>';
     renderJobList();
@@ -3385,6 +3524,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
       if (f.sub) f.duty = T.SUB_TO_DUTY[f.sub];
       f.type = pick('type', T.TYPES); f.corp = pick('corp', T.CORPS); f.region = pick('region', T.REGIONS); f.ind = pick('ind', T.INDUSTRIES);
       f.q = (q.get('q') || '').slice(0, 40);
+      f.view = q.get('view') === 'cal' ? 'cal' : '';
       return { route: 'jobs', jobFilter: f };
     }
     if (h === 'chat') return { route: 'chat' };
@@ -3522,6 +3662,22 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
         });
         break;
       case 'reload': location.reload(); break;
+      case 'cal-prev':
+      case 'cal-next':
+        ui.calMonth = shiftMonth(ui.calMonth || R.todayKST().slice(0, 7), a === 'cal-next' ? 1 : -1);
+        ui.calDay = null;
+        renderJobList();
+        break;
+      case 'cal-today':
+        ui.calMonth = R.todayKST().slice(0, 7); ui.calDay = R.todayKST();
+        renderJobList();
+        break;
+      case 'cal-day':
+        ui.calDay = ui.calDay === t.dataset.day ? null : t.dataset.day;
+        renderJobList();
+        { const b = document.querySelector('[data-day="' + ui.calDay + '"]'); if (b) b.focus({ preventScroll: true }); }
+        if (ui.calDay && window.matchMedia('(max-width: 599px)').matches) { const sec = $('.cal-day'); if (sec) sec.scrollIntoView({ block: 'nearest' }); }
+        break;
       case 'job-tab': {
         ui.jobTab = t.dataset.tabKey;
         $$('.jf-tab').forEach(function (b) { const on = b === t; b.classList.toggle('on', on); b.setAttribute('aria-expanded', String(on)); });
