@@ -622,6 +622,191 @@ body.in-room main { padding-bottom: 96px; }
 .inline.range input { flex: 1 1 150px; min-width: 0; }
 .stepper .cap-input { width: 88px !important; text-align: center; font-variant-numeric: tabular-nums; }
 
+
+/* =====================================================================
+   다듬은 디자인 (2026-11 · "면접 대기표")
+   - 생각: 면접장 대기실의 번호표. 모든 모집 글은 왼쪽에 D-day가 적힌 절취선 달린 대기표다.
+     과감한 건 이 대기표 하나뿐, 나머지는 조용히.
+   - 색: 사용자가 고른 파랑은 그대로 두되 한 톤 깊은 코발트로, 글자는 정장 남색, 바탕은 옅은 안개색.
+   - 모서리: 버튼·입력 12px, 카드 18px, 큰 판 24px (위계에 따라 다르게)
+   ===================================================================== */
+:root {
+  --canvas: #ffffff;
+  --page: #f4f6fa;          /* 안개색 바탕: 흰 카드가 떠 보이게 */
+  --soft: #eef1f6;
+  --strong: #e3e8f0;
+  --ink: #142036;           /* 정장 남색 */
+  --body: #39445a;
+  --muted: #667089;
+  --line: #e1e6ee;
+  --line-soft: #e9edf3;
+  --field: #c6cdd8;
+  --brand: #3563ec;
+  --accent: #2a52d6;        /* 흰 글자 대비 6.2:1 */
+  --accent-hover: #2447bd;
+  --accent-press: #1e3da3;
+  --accent-soft: #e8eefd;
+  --accent-text: #1e3da3;
+  --accent-disabled: #bccbf6;
+  --perf: #c9d1de;          /* 절취선 */
+  --shadow: 0 1px 2px rgba(20, 32, 54, .04), 0 8px 24px -12px rgba(20, 32, 54, .14);
+  --shadow-lift: 0 2px 4px rgba(20, 32, 54, .05), 0 22px 44px -20px rgba(20, 32, 54, .28);
+  --r-sm: 12px;
+  --r-md: 18px;
+  --r-lg: 24px;
+}
+body { background: var(--page); }
+h1, h2, h3 { font-weight: 750; letter-spacing: -.035em; }
+
+/* 머리 */
+.top { background: rgba(255, 255, 255, .86); border-bottom-color: var(--line); }
+.logo-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--ink); font-size: 14px; position: relative; overflow: hidden; }
+.logo-mark::after { content: ""; position: absolute; left: 0; right: 0; bottom: 6px; border-top: 1.5px dashed rgba(255, 255, 255, .45); }
+.logo-text { font-weight: 800; letter-spacing: -.05em; }
+.nav a { font-weight: 550; }
+.nav a::after { height: 2px; bottom: 4px; background: var(--ink); }
+.demo { background: var(--ink); color: #dfe5f0; border-bottom: 0; }
+.demo-text { color: #c4cddc; }
+.demo-tag { background: #fff; color: var(--ink); }
+.demo .link, .demo .demo-pick { color: #fff; }
+.demo .link::before { background: rgba(255, 255, 255, .35); }
+.demo-pick select { border-color: rgba(255, 255, 255, .25); background: rgba(255, 255, 255, .08); color: #fff; }
+.demo-pick select option { color: var(--ink); background: #fff; }
+
+/* 버튼 */
+.btn { border-radius: var(--r-sm); font-weight: 650; letter-spacing: -.02em; border-color: var(--line); }
+.btn:hover { border-color: var(--field); background: var(--canvas); }
+.btn-primary { box-shadow: 0 1px 0 rgba(255, 255, 255, .18) inset, 0 1px 2px rgba(20, 32, 54, .18); }
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+/* 첫 화면 */
+.hero { padding: 56px 0 64px; gap: 56px; }
+.hero h1 { font-size: clamp(38px, 5.6vw, 62px); line-height: 1.14; font-weight: 800; letter-spacing: -.055em; color: var(--ink); }
+.hero-sub { margin-top: 22px; font-size: 18px; line-height: 1.6; color: var(--body); }
+.hero-act { margin-top: 30px; }
+.blob { display: none; }
+.deck { position: absolute; inset: 8px 0 8px 6%; border-radius: 28px; background: var(--ink); overflow: hidden; }
+/* 대기실 벽의 번호판처럼, 큰 D 글자가 옅게 깔린다 */
+.deck::before { content: "D-3"; position: absolute; right: -10px; bottom: -46px; font-size: 220px; font-weight: 800; letter-spacing: -.08em; line-height: 1; color: rgba(255, 255, 255, .06); }
+.deck::after { content: ""; position: absolute; left: 28px; right: 28px; top: 50%; border-top: 1.5px dashed rgba(255, 255, 255, .16); }
+.mini { padding: 0; gap: 0; overflow: hidden; border-radius: var(--r-md); box-shadow: 0 30px 60px -24px rgba(0, 0, 0, .55); }
+.mini .dbadge { align-self: stretch; height: auto; width: 76px; border-radius: 0; }
+.mini .tk-body { padding: 16px 18px 16px 16px; }
+.mini.m1 { top: 56px; left: 0; transform: rotate(-2.5deg); }
+.mini.m2 { bottom: 48px; right: 4%; transform: rotate(1.5deg); }
+body:not(.entered) .hero[data-enter] .mini.m1 { animation: rise-m1 .7s .1s var(--ease) both; }
+body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(--ease) both; }
+@keyframes rise-m1 { from { opacity: 0; transform: translateY(18px) rotate(-2.5deg); } to { opacity: 1; transform: rotate(-2.5deg); } }
+@keyframes rise-m2 { from { opacity: 0; transform: translateY(18px) rotate(1.5deg); } to { opacity: 1; transform: rotate(1.5deg); } }
+
+/* 대기표: 왼쪽 번호(D-day) + 절취선 + 내용 */
+.tickets { gap: 14px; }
+.ticket { --stub: 84px; padding: 0; gap: 0; align-items: stretch; border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow); overflow: hidden; transition: transform .2s var(--ease); }
+.ticket::before, .ticket::after { content: ""; position: absolute; z-index: 1; left: calc(var(--stub) - 9px); width: 18px; height: 18px; border-radius: 50%; background: var(--page); border: 1px solid var(--line); box-shadow: none; opacity: 1; inset: auto; }
+.ticket::before { top: -10px; left: calc(var(--stub) - 9px); }
+.ticket::after { bottom: -10px; left: calc(var(--stub) - 9px); }
+.ticket:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+.ticket:hover::after { opacity: 1; }
+.dbadge { width: var(--stub, 76px); height: auto; min-height: 100%; border-radius: 0; gap: 6px; background: var(--soft); border-right: 1.5px dashed var(--perf); padding: 18px 6px; }
+.dbadge b { font-size: 22px; font-weight: 800; letter-spacing: -.05em; color: var(--ink); }
+.dbadge small { font-size: 12px; color: var(--muted); }
+.urgent .dbadge { background: var(--accent); border-right-color: rgba(255, 255, 255, .45); }
+.urgent .dbadge b, .urgent .dbadge small { color: #fff; }
+.mini.urgent .dbadge { background: var(--accent); }
+.tk-body { padding: 18px 20px 16px; gap: 7px; }
+.company { font-size: 18px; font-weight: 750; letter-spacing: -.04em; }
+.tk-title { color: var(--ink); font-weight: 550; }
+.tk-meta { font-size: 13.5px; }
+.tk-due { font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tk-due.hot { color: var(--bad); }
+.tk-foot { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+.seats i { width: 8px; height: 8px; }
+.seats i.on { background: var(--ink); }
+.done .ticket { background: var(--canvas); box-shadow: none; opacity: .78; }
+.done .dbadge { background: var(--soft); }
+
+/* 상태·조건 표시: 작은 점 + 글자로 조용하게 */
+.pill { min-height: 24px; padding: 0 10px 0 9px; gap: 6px; background: transparent !important; border: 1px solid var(--line); font-weight: 650; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.st-open { color: var(--ok); }
+.chip { border-radius: 7px; font-weight: 650; }
+
+/* 목록 머리와 거르기 */
+.board-head h2 { font-size: 28px; font-weight: 800; letter-spacing: -.045em; }
+.search input { border-radius: var(--r-sm); border-color: var(--line); background: var(--canvas); box-shadow: var(--shadow); }
+.fchips { gap: 4px; padding: 4px; border-radius: 14px; background: var(--strong); }
+.fchip { min-height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--body); font-weight: 600; }
+.fchip:hover { color: var(--ink); background: rgba(255, 255, 255, .6); }
+.fchip.on { background: var(--canvas); color: var(--ink); box-shadow: 0 1px 2px rgba(20, 32, 54, .12); }
+@media (max-width: 599px) { .fchips { gap: 2px; } }
+
+/* 다가오는 일정 */
+.up { background: var(--canvas); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.up-date { color: var(--accent); }
+
+/* 빈 화면·안내 상자 */
+.empty { background: var(--canvas); border: 1.5px dashed var(--field); }
+
+/* 글 상세: 큰 대기표 */
+.detail { gap: 24px; }
+.d-head { padding: 0; border-radius: var(--r-lg); background: var(--canvas); border: 1px solid var(--line); box-shadow: var(--shadow); overflow: hidden; gap: 0; align-items: stretch; }
+.d-stub { width: 120px; height: auto; min-height: 132px; border-radius: 0; background: var(--ink); border-right: 2px dashed rgba(255, 255, 255, .28); }
+.d-stub .dd { font-size: 32px; font-weight: 800; color: #fff; letter-spacing: -.055em; }
+.d-stub .dd-date { color: #b9c3d6; }
+.d-stub.urgent { background: var(--accent); }
+.d-stub.urgent .dd { color: #fff; }
+.d-titles { padding: 20px 24px; align-self: center; }
+.d-titles h1 { font-weight: 800; letter-spacing: -.045em; }
+.facts { padding: 4px 22px; border-top: 0; border-radius: var(--r-md); background: var(--canvas); border: 1px solid var(--line); }
+.facts div:nth-last-child(-n+2) { border-bottom: 0; }
+.rulebox { border-radius: var(--r-md); }
+.d-sec { padding: 22px; border-radius: var(--r-md); background: var(--canvas); border: 1px solid var(--line); }
+.d-sec.host-panel { background: var(--canvas); border: 1.5px solid var(--ink); }
+.person:last-child { border-bottom: 0; }
+.avatar { background: var(--soft); font-weight: 750; }
+@media (max-width: 480px) {
+  .d-stub { width: 92px; min-height: 112px; }
+  .d-stub .dd { font-size: 26px; }
+  .d-titles { padding: 16px 18px; }
+  .facts { grid-template-columns: 1fr; padding: 2px 18px; }
+  .facts div:nth-last-child(2) { border-bottom: 1px solid var(--line-soft); }
+  .d-sec { padding: 18px; }
+}
+
+/* 입력 화면: 묶음마다 흰 판 */
+.form { gap: 20px; }
+.form > h1, .form > .lead { padding: 0 2px; }
+.lead { margin: -8px 0 4px; }
+.group { padding: 24px; border-radius: var(--r-lg); background: var(--canvas); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.group + .group { padding-top: 24px; border-top: 1px solid var(--line); }
+.group legend { float: left; font-size: 19px; font-weight: 800; }
+.field input:not([type="checkbox"]):not([type="radio"]), .field select, .field textarea { border-color: var(--field); background: #fbfcfd; }
+.field input:not([type="checkbox"]):not([type="radio"]):focus, .field select:focus, .field textarea:focus { background: #fff; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.pill-radio span { border-radius: 10px; font-weight: 550; }
+.pill-radio input:checked + span { background: var(--ink); border-color: var(--ink); }
+.card-radio { border-radius: var(--r-md); }
+.card-radio:has(input:checked) { background: #f7f9fd; }
+.check { border-radius: 10px; }
+.submit-bar { background: linear-gradient(to top, var(--page) 72%, rgba(244, 246, 250, 0)); }
+@media (max-width: 480px) { .group { padding: 20px 18px; border-radius: var(--r-md); } }
+
+/* 마이페이지·채용·메시지 */
+.profile-card { background: var(--canvas); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.job { border-radius: var(--r-md); box-shadow: var(--shadow); }
+.job-filter { background: var(--canvas); box-shadow: var(--shadow); }
+.jobs-check { background: var(--canvas); border: 1px solid var(--line); }
+.rooms { background: var(--canvas); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; }
+.room-row { padding-left: 16px; padding-right: 16px; }
+.room-row:last-child { border-bottom: 0; }
+.room-head { background: rgba(244, 246, 250, .94); }
+.auth-tabs { background: var(--strong); }
+.foot p { border-top-color: var(--line); }
+.actionbar { background: rgba(255, 255, 255, .94); }
+.prof-card { background: var(--canvas); }
+@media (prefers-reduced-motion: reduce) { .mini.m1, .mini.m2 { animation: none !important; } }
+.ticket .tk-body { display: flex; flex-direction: column; gap: 7px; }
+.ticket .tk-foot { margin-top: auto; }
+
 </style>
 </head>
 <body>
@@ -2015,7 +2200,7 @@ body.in-room main { padding-bottom: 96px; }
       + '<p class="hero-sub">회사·직무·전형만 정해서 올리면, 조건이 맞는 사람이 바로 신청해요.</p>'
       + '<div class="hero-act"><a class="btn btn-primary btn-lg" href="#new">모집 글 쓰기</a>'
       + '<button type="button" class="btn btn-lg" data-action="to-list">모집 글 보기</button></div></div>'
-      + '<div class="hero-art" aria-hidden="true"><div class="blob"></div>'
+      + '<div class="hero-art" aria-hidden="true"><div class="deck"></div>'
       + miniCard('m1 urgent', 'D-3', '생산기술 · 1차 실무', 'same', '온라인 · 바로 참가', 2, 4)
       + miniCard('m2', 'D-8', '직무 모두 다르게 · PT', 'diverse', '오프라인 · 방장 수락', 3, 5)
       + '</div></section>'
