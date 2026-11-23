@@ -4,8 +4,8 @@
      GET https://apis.data.go.kr/1051000/recruitment/list
    - 인증키: Vercel 환경 변수 DATA_GO_KR_KEY (저장소에는 넣지 않는다)
    - 결과는 Vercel CDN에 6시간 저장된다. 그래서 하루 몇 번만 API를 부르고, 공고는 저절로 새로워진다.
-   - 면접 스터디 사이트라 신입이 지원할 수 있는 정규직·무기계약직·청년인턴 중 사무·기술 직군 공고만 남긴다.
-     대체인력, 현장 지원직(조리·청소·경비 등), 병원 의료직, 보훈·장애인 제한경쟁은 뺀다.
+   - 접수 중인 공고를 모두 넣는다(2026-11-23 사용자 요청으로 거름 기준을 없앰). 신입·경력직·인턴·계약직은 types로 나눠
+     화면의 채용형태 필터에서 고른다.
    - 화면에 넣는 모양은 src/jobs.js 의 공고 한 개와 같다. 분류 이름은 src/taxonomy.js 와 같다. */
 'use strict';
 
@@ -37,10 +37,6 @@ const NCS = {
   '식품가공': ['식품/화장품'],
   '환경에너지안전': ['환경/안전관리', '환경/플랜트']
 };
-/* 면접 스터디를 거의 하지 않는 직군: 공고의 NCS 분야가 모두 여기에 들면 뺀다 (사무·기술 직군 위주로) */
-const SKIP_NCS = ['음식서비스', '경비청소', '이용숙박여행오락스포츠', '운전운송', '농림어업', '인쇄목재가구공예', '섬유의복', '사회복지종교', '보건의료'];
-/* 제목으로 거르는 것: 현장 지원직, 의사직, 보훈·장애인 등 지원 자격이 제한된 공고 */
-const SKIP_TITLE = /조리|청소|미화|경비|운전원|운전직|영선|당직|배식|주차|시설관리|보안요원|사무보조|단기|일용|전문의|의사직|제한\s*경쟁|특별\s*(채용|고용)|보훈\s*(특별|제한)|장애인\s*제한|서비스지원직/;
 const NCS_INDUSTRY = { '금융보험': '금융/보험', '정보통신': 'IT/SW', '화학바이오': '바이오/제약' };
 
 /* 근무지역 이름 → taxonomy.js REGIONS */
@@ -85,28 +81,28 @@ function toJob(row, today) {
   const end = ymd(row.pbancEndYmd);
   if (!company || !title || !end || end < today) return null;
   if (String(row.ongoingYn || '').toUpperCase() === 'N') return null;
-  if (String(row.replmprYn || '').toUpperCase() === 'Y' || /대체\s*인력|육아휴직\s*대체/.test(title)) return null;
+  /* 2026-11-23부터 거르지 않고 접수 중인 공고를 모두 넣는다. 고르는 건 화면의 채용형태·직무 필터로 한다. */
+  const replacement = String(row.replmprYn || '').toUpperCase() === 'Y' || /대체\s*인력|육아휴직\s*대체/.test(title);
 
   const se = pieces(row.recrutSe), seName = text(row.recrutSeNm, 40);
   /* 코드가 있으면 코드로, 없으면 이름으로 가린다 */
   const fresh = se.length ? se.indexOf('R2010') >= 0 || se.indexOf('R2030') >= 0 : /신입/.test(seName);
   const career = se.length ? se.indexOf('R2020') >= 0 || se.indexOf('R2030') >= 0 : /경력/.test(seName);
-  if (!fresh) return null;
 
   const hire = pieces(row.hireTypeLst), hireName = text(row.hireTypeNmLst, 60);
   const regular = hire.length ? hire.indexOf('R1010') >= 0 || hire.indexOf('R1030') >= 0 : /정규직|무기계약/.test(hireName.replace(/비정규직/g, ''));
-  const intern = hire.length ? hire.indexOf('R1060') >= 0 || hire.indexOf('R1070') >= 0 : /인턴/.test(hireName);
-  if (!regular && !intern) return null;
+  const intern = hire.length ? hire.indexOf('R1050') >= 0 || hire.indexOf('R1060') >= 0 || hire.indexOf('R1070') >= 0 : /인턴/.test(hireName);
+  const contract = replacement || (hire.length ? hire.indexOf('R1020') >= 0 || hire.indexOf('R1040') >= 0 : /계약직|비정규/.test(hireName.replace(/무기계약직/g, '')));
 
+  /* 채용형태 필터용: 신입·경력직은 뽑는 사람, 인턴·계약직은 고용 형태 */
   const types = [];
-  if (regular) types.push('신입');
-  if (career && regular) types.push('경력직');
+  if (fresh) types.push('신입');
+  if (career) types.push('경력직');
   if (intern) types.push('인턴');
+  if (contract || (!regular && !intern)) types.push('계약직');
 
   const ncs = pieces(row.ncsCdNmLst).map(function (s) { return text(s, 30); }).filter(Boolean).slice(0, 8);
   const keys = ncs.map(function (s) { return s.replace(/[.·ㆍ,\s]/g, ''); });
-  if (SKIP_TITLE.test(title)) return null;
-  if (keys.length && keys.every(function (k) { return SKIP_NCS.indexOf(k) >= 0; })) return null;
   const duties = uniq([].concat.apply([], keys.map(function (k) { return NCS[k] || []; })));
   const industries = uniq(['공공/비영리'].concat(keys.map(function (k) { return NCS_INDUSTRY[k] || ''; })));
   const regions = uniq(pieces(row.workRgnNmLst).map(regionOf));
