@@ -1,7 +1,13 @@
-/* 공공기관 채용공고 자동 받기 (Vercel 서버 함수, 주소: /api/jobs)
+/* 공공 채용공고 자동 받기 (Vercel 서버 함수, 주소: /api/jobs)
 
-   - 출처: 공공데이터포털 「재정경제부_공공기관 채용정보 조회서비스」(잡알리오, data.go.kr 15125273)
-     GET https://apis.data.go.kr/1051000/recruitment/list
+   - 출처 셋 (모두 공공데이터포털, 같은 인증키로 부른다)
+     1) 잡알리오: 「재정경제부_공공기관 채용정보 조회서비스」(15125273) — 공공기관·공기업
+        GET https://apis.data.go.kr/1051000/recruitment/list
+     2) 나라일터: 「인사혁신처_공공취업정보 조회 서비스」(15156780) — 중앙부처·지자체·교육청
+        GET https://apis.data.go.kr/1760000/PblJobService/getList (공공기관 공고는 잡알리오와 겹쳐서 뺀다)
+     3) 클린아이: 「행정안전부 한국지역정보개발원_채용정보 조회 서비스」(15159757) — 지방공사·공단·출자출연기관
+        GET https://apis.data.go.kr/B551982/openApiEmployInfo/openXmlEmployInfo (시도별로 따로 부른다, XML만 줌)
+     한 출처가 실패해도 나머지는 보여 준다. 같은 기관·같은 마감 공고는 잡알리오 → 클린아이 → 나라일터 순으로 하나만 둔다.
    - 인증키: Vercel 환경 변수 DATA_GO_KR_KEY (저장소에는 넣지 않는다)
    - 결과는 Vercel CDN에 6시간 저장된다. 그래서 하루 몇 번만 API를 부르고, 공고는 저절로 새로워진다.
    - 접수 중인 공고를 모두 넣는다(2026-11-23 사용자 요청으로 거름 기준을 없앰). 신입·경력직·인턴·계약직은 types로 나눠
@@ -182,6 +188,232 @@ async function loadJobs(key, fetchImpl, now) {
   return { items: items, scanned: all.length, total: first.total };
 }
 
+/* ---------- 공통: 제목·직무명에서 직무 상세 짐작 (나라일터·클린아이는 NCS 코드가 없거나 거칠다) ---------- */
+const WORDS = [
+  [/전기|전력|송변전|배전/, ['전기/전자/반도체', '전기/소방/설비']],
+  [/기계|설비|정비|공조|보일러/, ['기계/자동차/조선', '설비/기계유지보수']],
+  [/토목|조경|측량/, ['토목/조경']],
+  [/건축/, ['건축/인테리어설계', '시공/현장관리/감리']],
+  [/환경|안전|소방/, ['환경/안전관리']],
+  [/화학|화공|수질|에너지/, ['화학/에너지/환경']],
+  [/전산|정보(?:화|통신|보호|시스템)|IT|소프트웨어|데이터/, ['시스템/ERP개발']],
+  [/연구(?:원|직|위원)?|학예/, ['대학교수/연구원']],
+  [/간호/, ['간호사/간호조무사']],
+  [/방사선|임상병리|물리치료|작업치료|치위생|의료기사/, ['의료기사']],
+  [/행정|사무|총무|경영지원/, ['사무/문서관리']],
+  [/회계|재무|세무/, ['재무/회계/세무']]
+];
+function dutiesFromWords(s) {
+  const out = [];
+  WORDS.forEach(function (w) { if (w[0].test(s)) w[1].forEach(function (d) { out.push(d); }); });
+  return uniq(out);
+}
+/* 안내·결과 글과 임원 공모는 채용 공고가 아니라서 뺀다 */
+const NOT_POSTING = /합격자|최종\s*합격|결과\s*(?:공고|발표|안내|알림)|합격\s*발표|(?:시험|면접|전형)\s*(?:일정|장소)|일정\s*(?:변경|안내)|변경\s*공고|정정\s*공고|취소\s*공고|연기|위촉|비상임|임원|대표이사|이사장|(?:상임)?이사\s*(?:공개)?\s*(?:모집|초빙)|감사\s*(?:공개)?\s*(?:모집|초빙)|원장\s*(?:공개)?\s*(?:모집|초빙)/;
+function typesFromTitle(t, base) {
+  const types = base.slice();
+  if (/인턴/.test(t) && types.indexOf('인턴') < 0) types.push('인턴');
+  if (/기간제|계약|대체|한시|일용|단기|시간제|인력풀|강사/.test(t) && types.indexOf('계약직') < 0) types.push('계약직');
+  if (/경력/.test(t) && types.indexOf('경력직') < 0) types.push('경력직');
+  if (!types.length) types.push('신입');
+  return types;
+}
+
+/* ---------- 나라일터 (인사혁신처) ---------- */
+const NARA = 'https://apis.data.go.kr/1760000/PblJobService/getList';
+const NARA_VIEW = 'https://www.gojobs.go.kr/apmView.do?empmnsn=';
+const NARA_ROWS = 1000;
+const NARA_DAYS = 60; /* 최근 60일에 올라온 공고에서 접수 중인 것만 */
+const NARA_PAGES = 8;
+/* 시군구 코드 앞 두 자리 → 지역 */
+const AREA = { '11': '서울', '26': '부산', '27': '대구', '28': '인천', '29': '광주', '30': '대전', '31': '울산', '36': '세종', '41': '경기', '42': '강원', '51': '강원',
+  '43': '충청', '44': '충청', '45': '전라', '46': '전라', '52': '전라', '47': '경상', '48': '경상', '50': '제주' };
+const NARA_KIND = { g01: '국가기관', g02: '지방자치단체', g04: '교육청' };
+function ymdNum(v) { const m = /^(\d{4})(\d{2})(\d{2})$/.exec(String(v == null ? '' : v).trim()); return m ? m[1] + '-' + m[2] + '-' + m[3] : ''; }
+
+function naraJob(row, today) {
+  if (!row || typeof row !== 'object') return null;
+  const sn = String(row.idx == null ? '' : row.idx).trim();
+  if (!/^\d{1,12}$/.test(sn)) return null;
+  /* 목록에서는 type01=공고유형(e..), type02=기관구분(g..)이지만 반대로 올 때도 있어 값으로 가린다 */
+  const codes = [String(row.type01 || ''), String(row.type02 || '')];
+  const kind = codes.filter(function (c) { return /^g\d\d$/.test(c); })[0] || '';
+  const ty = codes.filter(function (c) { return /^e\d\d$/.test(c); })[0] || '';
+  if (kind === 'g03' || !NARA_KIND[kind]) return null; /* 공공기관은 잡알리오에서 받는다 */
+  if (ty === 'e07') return null; /* 전입공모: 이미 공무원인 사람 대상 */
+  const company = text(row.insttname, 60);
+  const title = text(row.title, 120).replace(/&amp;/g, '&');
+  const end = ymdNum(row.enddate), start = ymdNum(row.begindate);
+  if (!company || !title || !end || end < today || end > '2099-12-31') return null;
+  if (NOT_POSTING.test(title)) return null;
+  const base = ty === 'e01' ? ['신입'] : ty === 'e02' || ty === 'e06' ? ['경력직'] : ty === 'e03' || ty === 'e04' ? ['계약직'] : [];
+  const types = typesFromTitle(title, base);
+  const regions = uniq(pieces(row.areacode).map(function (c) {
+    const s = String(c).replace(/\D/g, '');
+    return /^0+$/.test(s) ? '지역 제한없음' : AREA[s.slice(0, 2)] || '';
+  }));
+  const url = NARA_VIEW + sn;
+  return {
+    id: 'nara-' + sn, auto: true, company: company, title: title,
+    jobs: ['직무 공고문 확인'], duties: dutiesFromWords(title), types: types,
+    corp: '정부/지자체/교육청',
+    regions: regions.length >= 10 ? ['지역 제한없음'] : regions,
+    industries: ['공공/비영리'],
+    apply: start && start <= end ? { start: start, end: end } : { end: end },
+    steps: [], flow: '', note: NARA_KIND[kind], url: url,
+    source: { name: '나라일터 (공공취업정보 API)', url: url }
+  };
+}
+function addDays(day, n) { return new Date(Date.parse(day + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10); }
+async function naraPage(key, pageNo, today, fetchImpl) {
+  const u = new URL(NARA);
+  u.search = new URLSearchParams({ serviceKey: key, _type: 'json', pageNo: String(pageNo), numOfRows: String(NARA_ROWS),
+    Begin_de: addDays(today, -NARA_DAYS), End_de: today }).toString();
+  const res = await fetchImpl(u, { headers: { Accept: 'application/json' }, redirect: 'error', signal: AbortSignal.timeout(15000) });
+  const body = await res.text();
+  if (body.length > 8000000) throw new Error('nara-too-large');
+  let d;
+  try { d = JSON.parse(body); } catch (e) { throw new Error('nara-not-json ' + res.status); }
+  const r = d && d.response;
+  const code = String(r && r.header && r.header.resultCode);
+  if (code !== '00' && code !== '0') throw new Error('nara-api-' + code);
+  const b = r.body || {};
+  let rows = b.items && b.items.item;
+  if (rows == null || rows === '') rows = [];
+  if (!Array.isArray(rows)) rows = [rows];
+  return { rows: rows, total: Number(b.totalCount) || 0 };
+}
+async function loadNara(key, fetchImpl, now) {
+  const today = todayKST(now);
+  const first = await naraPage(key, 1, today, fetchImpl);
+  const pages = Math.min(NARA_PAGES, Math.ceil(first.total / NARA_ROWS));
+  const rest = [];
+  for (let p = 2; p <= pages; p++) rest.push(naraPage(key, p, today, fetchImpl).catch(function () { return { rows: [] }; }));
+  const all = first.rows.concat.apply(first.rows, (await Promise.all(rest)).map(function (x) { return x.rows; }));
+  return { items: all.map(function (r) { return naraJob(r, today); }).filter(Boolean), scanned: all.length };
+}
+
+/* ---------- 클린아이 (지방공기업·출자출연기관) ---------- */
+const LOCAL = 'https://apis.data.go.kr/B551982/openApiEmployInfo/openXmlEmployInfo';
+const LOCAL_VIEW = 'https://job.cleaneye.go.kr/user/ypCareersData.do?idx=';
+/* 시도 코드: 007001 서울 … 007017 세종 (007005 광주는 전남광주통합특별시 007013으로 합쳐져 비어 있다) */
+const LOCAL_SIDO = ['007001', '007002', '007003', '007004', '007005', '007006', '007007', '007008', '007009', '007010', '007011', '007012', '007013', '007014', '007015', '007016', '007017'];
+function xmlText(s) {
+  return String(s).replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, '&');
+}
+function parseLocalXml(body) {
+  const code = (/<resultCode>\s*([^<]*?)\s*<\/resultCode>/.exec(body) || [])[1];
+  const msg = (/<resultMsg>\s*([^<]*?)\s*<\/resultMsg>/.exec(body) || [])[1] || '';
+  if (/NODATA|NOTEXISTDATA/.test(msg)) return [];
+  if (code !== '00' && code !== '0') throw new Error('local-api-' + code + ' ' + text(msg, 40));
+  const rows = [];
+  const re = /<item>([\s\S]*?)<\/item>/g;
+  let m;
+  while ((m = re.exec(body)) && rows.length < 2000) {
+    const o = {};
+    const f = /<([A-Za-z_0-9]+)>([\s\S]*?)<\/\1>/g;
+    let g;
+    while ((g = f.exec(m[1]))) o[g[1]] = xmlText(g[2]).trim();
+    rows.push(o);
+  }
+  return rows;
+}
+function blank(v) { const s = text(v, 200); return s === '-' || s === 'null' ? '' : s; }
+/* 한 공고가 직위별로 여러 줄로 오면 하나로 묶는다 */
+function localJobs(rows, today) {
+  const groups = {};
+  const order = [];
+  rows.forEach(function (row) {
+    if (!row || typeof row !== 'object') return;
+    const sn = String(row.NO || '').trim();
+    if (!/^\d{1,12}$/.test(sn)) return;
+    const company = text(row.ENT_NAME, 60), title = text(row.ENT_TITLE, 120);
+    const end = ymd(row.PUB_END_DATE), start = ymd(row.PUB_DATE);
+    if (!company || !title || !end || end < today) return;
+    if (/마감|종료/.test(String(row.STATUS || ''))) return;
+    const jobType = blank(row.JOB_TYPE);
+    if (/비상임/.test(jobType) || NOT_POSTING.test(title)) return;
+    const k = company + '|' + title + '|' + end;
+    if (!groups[k]) { groups[k] = { rows: [], sn: sn, company: company, title: title, start: start, end: end }; order.push(k); }
+    const gr = groups[k];
+    gr.rows.push(row);
+    if (Number(sn) < Number(gr.sn)) gr.sn = sn;
+  });
+  return order.map(function (k) {
+    const gr = groups[k];
+    const fresh = gr.rows.some(function (r) { return /신입/.test(r.EMPLOY_GB || ''); });
+    const career = gr.rows.some(function (r) { return /경력/.test(r.EMPLOY_GB || ''); });
+    const jt = uniq(gr.rows.map(function (r) { return blank(r.JOB_TYPE); }));
+    const types = [];
+    if (fresh) types.push('신입');
+    if (career) types.push('경력직');
+    if (jt.some(function (t) { return /인턴/.test(t); })) types.push('인턴');
+    if (jt.some(function (t) { return /기간제|계약직/.test(t); }) || gr.rows.some(function (r) { return String(r.RE_MAN_YN).toUpperCase() === 'Y'; })) types.push('계약직');
+    const typesAll = typesFromTitle(gr.title, types);
+    const fields = uniq(gr.rows.map(function (r) { return blank(r.ENT_RECRUIT); }).filter(function (s) { return s && s !== '기타'; }));
+    const positions = uniq(gr.rows.map(function (r) { return blank(r.POSITION); }));
+    const keys = fields.map(function (s) { return s.replace(/[.·ㆍ,\s]/g, ''); });
+    const duties = uniq([].concat.apply([], keys.map(function (k) { return NCS[k] || []; })).concat(dutiesFromWords(gr.title + ' ' + positions.join(' ') + ' ' + gr.rows.map(function (r) { return blank(r.DUTY_DETAIL); }).join(' '))));
+    const regions = uniq(gr.rows.map(function (r) { return regionOf(r.SIDO_CD || ''); }));
+    const count = gr.rows.reduce(function (n, r) { const c = Number(r.EMPLOY_NUM); return n + (Number.isFinite(c) && c > 0 ? c : 0); }, 0);
+    const kind = text(gr.rows[0].ENT_GB, 20);
+    const note = [count > 0 ? '선발 ' + count + '명' : '', jt.slice(0, 2).join('·'), kind].filter(Boolean).join(' · ');
+    const url = LOCAL_VIEW + gr.sn;
+    const jobNames = (fields.length ? fields : positions).map(function (s) { return text(s, 30); }).filter(Boolean).slice(0, 6);
+    return {
+      id: 'local-' + gr.sn, auto: true, company: gr.company, title: gr.title,
+      jobs: jobNames.length ? jobNames : ['직무 공고문 확인'],
+      duties: duties, types: typesAll,
+      corp: '공공기관/공기업',
+      regions: regions, industries: ['공공/비영리'],
+      apply: gr.start && gr.start <= gr.end ? { start: gr.start, end: gr.end } : { end: gr.end },
+      steps: [], flow: text(gr.rows[0].JUDGE_METHOD, 80).replace(/^(?:-|null)$/, ''), note: note.slice(0, 80), url: url,
+      source: { name: '클린아이 (지방공공기관 채용정보 API)', url: url }
+    };
+  });
+}
+async function localSido(key, sido, fetchImpl) {
+  const u = new URL(LOCAL);
+  u.search = new URLSearchParams({ serviceKey: key, type: 'xml', sidoCd: sido, pageNo: '1', numOfRows: '1000' }).toString();
+  const res = await fetchImpl(u, { headers: { Accept: 'application/xml' }, redirect: 'error', signal: AbortSignal.timeout(15000) });
+  const body = await res.text();
+  if (body.length > 8000000) throw new Error('local-too-large');
+  return parseLocalXml(body);
+}
+async function loadLocal(key, fetchImpl, now) {
+  const today = todayKST(now);
+  let failed = 0;
+  const lists = await Promise.all(LOCAL_SIDO.map(function (c) {
+    return localSido(key, c, fetchImpl).catch(function () { failed++; return []; });
+  }));
+  if (failed === LOCAL_SIDO.length) throw new Error('local-all-failed');
+  const rows = [].concat.apply([], lists);
+  return { items: localJobs(rows, today), scanned: rows.length };
+}
+
+/* ---------- 셋을 합친다 ---------- */
+function squashName(s) { return String(s).replace(/\(주\)|㈜|주식회사|\(재\)|재단법인|사단법인|[\s()·.,\-]/g, ''); }
+async function loadAll(key, fetchImpl, now) {
+  const names = ['alio', 'local', 'nara'];
+  const got = await Promise.allSettled([loadJobs(key, fetchImpl, now), loadLocal(key, fetchImpl, now), loadNara(key, fetchImpl, now)]);
+  const errors = {}, counts = {};
+  const seen = {}, ids = {};
+  const items = [];
+  got.forEach(function (g, i) {
+    if (g.status !== 'fulfilled') { errors[names[i]] = String(g.reason && g.reason.message || 'error').split(key).join('***').slice(0, 80); counts[names[i]] = 0; return; }
+    let n = 0;
+    g.value.items.forEach(function (j) {
+      const k = squashName(j.company) + '|' + j.apply.end;
+      if (ids[j.id] || (i > 0 && seen[k])) return;
+      ids[j.id] = true; seen[k] = true; items.push(j); n++;
+    });
+    counts[names[i]] = n;
+  });
+  if (!items.length && Object.keys(errors).length === names.length) throw new Error(errors.alio || 'all-failed');
+  items.sort(function (a, b) { return a.apply.end < b.apply.end ? -1 : a.apply.end > b.apply.end ? 1 : 0; });
+  return { items: items, counts: counts, errors: errors };
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -192,9 +424,11 @@ module.exports = async function handler(req, res) {
     return;
   }
   try {
-    const out = await loadJobs(key, fetch, Date.now());
-    res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=21600, stale-while-revalidate=86400');
-    res.status(200).send(JSON.stringify({ updatedAt: new Date().toISOString(), source: 'alio', scanned: out.scanned, items: out.items }));
+    const out = await loadAll(key, fetch, Date.now());
+    /* 한 출처라도 실패했으면 1시간 뒤에 다시 받아 본다 */
+    const ttl = Object.keys(out.errors).length ? 3600 : 21600;
+    res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=' + ttl + ', stale-while-revalidate=86400');
+    res.status(200).send(JSON.stringify({ updatedAt: new Date().toISOString(), counts: out.counts, errors: out.errors, items: out.items }));
   } catch (e) {
     /* 인증키가 응답에 섞여 나오지 않게 오류 이름만 남긴다 */
     const msg = String(e && e.message || 'error').split(key).join('***').slice(0, 120);
@@ -207,3 +441,9 @@ module.exports.toJob = toJob;
 module.exports.parsePage = parsePage;
 module.exports.loadJobs = loadJobs;
 module.exports.regionOf = regionOf;
+module.exports.naraJob = naraJob;
+module.exports.loadNara = loadNara;
+module.exports.parseLocalXml = parseLocalXml;
+module.exports.localJobs = localJobs;
+module.exports.loadLocal = loadLocal;
+module.exports.loadAll = loadAll;

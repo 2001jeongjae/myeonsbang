@@ -923,6 +923,30 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
   .nav .nav-badge { position: absolute; top: 2px; right: -7px; margin: 0; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; box-shadow: 0 0 0 2px #fff; }
 }
 
+/* ---------- 글쓰기: 실시간 공고 고르기 ---------- */
+#n-find { width: 100%; }
+.pk-msg, .pk-count, .pk-more { margin: 10px 0 0; font-size: 14px; }
+.pk-count { color: var(--muted); font-size: 13px; }
+.pk-list { list-style: none; margin: 6px 0 0; padding: 0; border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; background: var(--canvas); }
+.pk-list li + li { border-top: 1px solid var(--line-soft); }
+.pk-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; width: 100%; padding: 12px 14px; border: 0; background: none; text-align: left; font: inherit; color: var(--body); cursor: pointer; }
+.pk-item:hover { background: var(--soft); }
+.pk-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.pk-item .pk-co { grid-column: 1; font-weight: 700; color: var(--ink); font-size: 14.5px; }
+.pk-item .pk-ti { grid-column: 1; font-size: 13.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pk-item .pk-end { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-size: 13px; font-weight: 600; color: var(--accent-text); white-space: nowrap; }
+.pk-picked { display: flex; flex-direction: column; gap: 3px; padding: 14px 16px; border: 1.5px solid var(--accent); border-radius: var(--r-sm); background: var(--accent-soft); }
+.pk-picked .pk-co { font-weight: 700; color: var(--ink); }
+.pk-picked .pk-ti { color: var(--body); font-size: 14.5px; }
+.pk-picked .pk-end { color: var(--muted); font-size: 13px; }
+.pk-picked .pk-act { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 6px; font-size: 14px; }
+.facts .fact-wide { grid-column: 1 / -1; }
+.facts .fact-wide dd { font-weight: 500; }
+@media (max-width: 480px) {
+  .pk-item { grid-template-columns: minmax(0, 1fr); }
+  .pk-item .pk-end { grid-column: 1; grid-row: auto; }
+}
+
 </style>
 </head>
 <body>
@@ -1262,6 +1286,12 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
 
     if (STAGES.indexOf(f.stage) < 0) e.stage = '전형을 골라 주세요.';
 
+    /* 실시간 공고에서 고른 글: 공고 번호·제목·마감일 모양만 본다 (접수 중인지는 화면에서 본다) */
+    if (f.posting != null && f.posting !== '') {
+      if (!/^(alio|local|nara)-\d{1,12}$/.test(String(f.posting))) e.posting = '실시간 채용 공고 중에서 하나를 골라 주세요.';
+      else if (!isYmd(f.postingEnd) || String(f.postingTitle || '').trim().length < 1 || String(f.postingTitle).length > 120) e.posting = '공고 정보를 다시 골라 주세요.';
+    }
+
     if (f.interviewDate) {
       if (!isYmd(f.interviewDate)) e.interviewDate = '날짜를 다시 골라 주세요.';
       else if (daysUntil(f.interviewDate, now) < 0) e.interviewDate = '오늘이나 그 뒤 날짜를 골라 주세요.';
@@ -1368,7 +1398,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
     { name: '기타', subs: [] }
   ];
   const TYPES = ['신입', '경력직', '인턴', '계약직'];
-  const CORPS = ['대기업', '중소기업', '공공기관/공기업', '외국계기업', '중견기업', '비영리단체/협회/재단', '스타트업', '금융권', '병원', '동아리/학생자치단체', '기타'];
+  const CORPS = ['대기업', '중소기업', '공공기관/공기업', '정부/지자체/교육청', '외국계기업', '중견기업', '비영리단체/협회/재단', '스타트업', '금융권', '병원', '동아리/학생자치단체', '기타'];
   const REGIONS = ['지역 제한없음', '서울', '부산', '대구', '인천', '광주', '대전', '울산', '경기', '강원', '충청', '전라', '경상', '제주', '세종', '해외'];
   const INDUSTRIES = ['반도체', '디스플레이', '이차전지/배터리', '자동차/모빌리티', 'IT/SW', '바이오/제약', '화학/에너지', '방산/항공우주', '조선/해양',
     '기계/로봇', '철강/금속', '금융/보험', '미디어/엔터', '유통/커머스', '패션/뷰티', '교육', '공공/비영리'];
@@ -1437,7 +1467,9 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
       id: snap.id, company: d.company, job: d.job, jobKey: d.jobKey, stage: d.stage,
       interviewDate: d.interviewDate || null, recruitStart: d.recruitStart || '', recruitEnd: d.recruitEnd || '', mode: d.mode, place: d.place || '', capacity: d.capacity,
       jobRule: d.jobRule, joinMode: d.joinMode, intro: d.intro || '', hostId: d.hostId, closed: !!d.closed,
-      createdAt: d.createdAt || 0, members: members, applicants: applicants
+      createdAt: d.createdAt || 0, members: members, applicants: applicants,
+      posting: typeof d.posting === 'string' ? d.posting : '', postingTitle: typeof d.postingTitle === 'string' ? d.postingTitle : '',
+      postingEnd: typeof d.postingEnd === 'string' ? d.postingEnd : ''
     };
   }
 
@@ -1832,7 +1864,9 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
         interviewDate: f.interviewDate || null, recruitStart: f.recruitStart, recruitEnd: f.recruitEnd,
         mode: f.mode, place: f.mode === 'offline' ? String(f.place).trim() : '',
         capacity: Number(f.capacity), jobRule: f.jobRule, joinMode: f.joinMode, intro: String(f.intro || '').trim(),
-        hostId: uid, closed: false, createdAt: now, members: {}, applicants: {}
+        hostId: uid, closed: false, createdAt: now, members: {}, applicants: {},
+        /* 실시간 채용 공고에서 고른 것만 올릴 수 있다 (firestore.rules에서도 검사) */
+        posting: f.posting, postingTitle: String(f.postingTitle || '').trim().slice(0, 120), postingEnd: f.postingEnd
       };
       data.members[uid] = host;
       let lastErr = null;
@@ -2189,12 +2223,18 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
     view.innerHTML = '<a class="back" href="#board">← 모집 글</a>'
       + '<form id="new-form" class="form" novalidate>'
       + '<h1>면스 모집 글 쓰기</h1>'
-      + '<p class="lead">회사와 직무, 모집 조건만 정하면 돼요. 올리면 단톡방에 붙일 문구를 바로 만들어 드려요.</p>'
+      + '<p class="lead">' + (live.state === 'off' ? '회사와' : '채용 공고와') + ' 직무, 모집 조건만 정하면 돼요. 올리면 단톡방에 붙일 문구를 바로 만들어 드려요.</p>'
 
       + '<fieldset class="group"><legend>면접 정보</legend>'
-      + '<div class="field"><label for="n-company">회사</label><input id="n-company" name="company" list="companies" maxlength="30" placeholder="예: 기아…" autocomplete="off" spellcheck="false">'
-      + '<datalist id="companies">' + R.COMPANIES.map(function (c) { return '<option value="' + esc(c) + '"></option>'; }).join('') + '</datalist>'
-      + '<p class="err" data-err="company"></p></div>'
+      + (live.state === 'off'
+        ? '<div class="field"><label for="n-company">회사</label><input id="n-company" name="company" list="companies" maxlength="30" placeholder="예: 기아…" autocomplete="off" spellcheck="false">'
+          + '<datalist id="companies">' + R.COMPANIES.map(function (c) { return '<option value="' + esc(c) + '"></option>'; }).join('') + '</datalist>'
+          + '<p class="err" data-err="company"></p></div>'
+        : '<div class="field" id="posting-field"><span class="label" id="l-posting">채용 공고</span>'
+          + '<input type="hidden" id="n-posting" name="posting" value="">'
+          + '<div id="posting-box" role="group" aria-labelledby="l-posting"></div>'
+          + '<p class="hint">채용 일정에서 실시간으로 받아 오는 공고 중에서 골라야 올릴 수 있어요.</p>'
+          + '<p class="err" data-err="posting"></p><p class="err" data-err="company"></p></div>')
       + '<div class="field"><label for="n-job">내 직무</label>' + jobSelect('n-job', u.job)
       + '<p class="hint">같은 직무끼리 모집하면 이 직무인 사람만 신청할 수 있어요.</p><p class="err" data-err="job"></p></div>'
       + '<div class="field"><span class="label" id="l-stage">전형</span><div class="seg" role="radiogroup" aria-labelledby="l-stage">'
@@ -2236,6 +2276,59 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
 
       + '<div class="submit-bar"><button class="btn btn-primary btn-wide" type="submit">모집 글 올리기</button></div>'
       + '</form>';
+    renderPostingBox();
+  }
+
+  /* ---------- 글쓰기: 실시간 공고 고르기 ---------- */
+  const LIVE_ID = /^(alio|local|nara)-\d{1,12}$/;
+  function livePostings() {
+    const today = R.todayKST();
+    return JOBS.filter(function (j) { return j.auto && LIVE_ID.test(j.id) && j.apply && j.apply.end >= today; });
+  }
+  function postingById(id) {
+    if (!id || !LIVE_ID.test(id)) return null;
+    return livePostings().find(function (j) { return j.id === id; }) || null;
+  }
+  function postingMatches(q) {
+    const words = String(q || '').toLowerCase().split(/\s+/).filter(Boolean);
+    return livePostings().filter(function (j) {
+      const hay = (j.company + ' ' + j.title + ' ' + (j.jobs || []).join(' ')).toLowerCase();
+      return words.every(function (w) { return hay.indexOf(w) >= 0; });
+    }).sort(function (a, b) { return a.apply.end < b.apply.end ? -1 : a.apply.end > b.apply.end ? 1 : 0; });
+  }
+  function postingResultsHtml(q) {
+    if (live.state === 'loading') return '<p class="muted pk-msg">실시간 공고를 불러오는 중이에요…</p>';
+    if (live.state !== 'ok') return '<p class="muted pk-msg">지금은 공고를 불러오지 못해서 글을 올릴 수 없어요. 잠시 뒤 새로고침해 보세요.</p>';
+    const all = postingMatches(q);
+    if (!all.length) return '<p class="muted pk-msg">‘' + esc(q) + '’에 맞는 접수 중인 공고가 없어요. 회사 이름을 짧게 넣어 보세요.</p>';
+    return '<p class="pk-count">' + (String(q || '').trim() ? '맞는 공고 ' + all.length + '개' : '마감이 가까운 공고부터 보여요') + '</p>'
+      + '<ul class="pk-list">' + all.slice(0, 8).map(function (j) {
+        return '<li><button type="button" class="pk-item" data-action="posting-pick" data-id="' + esc(j.id) + '">'
+          + '<span class="pk-co">' + esc(j.company) + '</span><span class="pk-ti">' + esc(j.title) + '</span>'
+          + '<span class="pk-end">' + esc(R.dateLabel(j.apply.end)) + ' 마감</span></button></li>';
+      }).join('') + '</ul>' + (all.length > 8 ? '<p class="muted pk-more">' + (all.length - 8) + '개 더 있어요. 검색어를 더 넣어 좁혀 보세요.</p>' : '');
+  }
+  function renderPostingBox() {
+    const box = $('#posting-box');
+    if (!box) return;
+    const hid = $('#n-posting');
+    /* 채용 일정에서 고르고 넘어온 공고는 공고가 도착하면 바로 골라 둔다 */
+    if (!hid.value && ui.prefillPosting && postingById(ui.prefillPosting)) { hid.value = ui.prefillPosting; ui.prefillPosting = ''; }
+    const j = postingById(hid.value);
+    if (j) {
+      box.innerHTML = '<div class="pk-picked"><span class="pk-co">' + esc(j.company) + '</span><span class="pk-ti">' + esc(j.title) + '</span>'
+        + '<span class="pk-end">서류 마감 ' + esc(R.dateLabel(j.apply.end)) + ' · ' + esc(j.source.name.replace(/\s*\(.*\)$/, '')) + '</span>'
+        + '<span class="pk-act"><a class="link ext" href="' + esc(j.url) + '" target="_blank" rel="noopener noreferrer">원문 보기<span class="sr"> (새 창)</span></a>'
+        + '<button type="button" class="link" data-action="posting-clear">다른 공고 고르기</button></span></div>';
+      return;
+    }
+    hid.value = '';
+    const find = $('#n-find');
+    if (find && document.activeElement === find) { $('#posting-results').innerHTML = postingResultsHtml(find.value); return; }
+    const q = find ? find.value : (ui.prefillCompany || '');
+    box.innerHTML = '<label class="sr" for="n-find">공고 검색</label>'
+      + '<input id="n-find" type="search" maxlength="40" placeholder="회사나 공고 이름으로 찾기 (예: 한국전력)" autocomplete="off" spellcheck="false" value="' + esc(q) + '">'
+      + '<div id="posting-results" aria-live="polite">' + postingResultsHtml(q) + '</div>';
   }
 
   function showErrors(form, errors) {
@@ -2249,7 +2342,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
       if (msg) { ctl.setAttribute('aria-invalid', 'true'); ctl.setAttribute('aria-describedby', el.id); }
       else { ctl.removeAttribute('aria-invalid'); ctl.removeAttribute('aria-describedby'); }
     });
-    const order = ['company', 'job', 'stage', 'interviewDate', 'jobRule', 'joinMode', 'capacity', 'recruitStart', 'recruitEnd', 'mode', 'place', 'intro', 'username', 'nick', 'password', 'password2', 'current', 'next', 'next2'];
+    const order = ['posting', 'company', 'job', 'stage', 'interviewDate', 'jobRule', 'joinMode', 'capacity', 'recruitStart', 'recruitEnd', 'mode', 'place', 'intro', 'username', 'nick', 'password', 'password2', 'current', 'next', 'next2'];
     const first = order.find(function (k) { return errors[k]; });
     if (first) {
       const el = $('[data-err="' + first + '"]', form);
@@ -2266,14 +2359,23 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
     const checked = function (name) { const el = $('input[name="' + name + '"]:checked', form); return el ? el.value : ''; };
     const unknown = $('#n-date-unknown').checked;
     const f = {
-      company: $('#n-company').value, job: readJob('n-job'), stage: checked('stage'),
+      company: $('#n-company') ? $('#n-company').value : '', job: readJob('n-job'), stage: checked('stage'),
       interviewDate: unknown ? null : ($('#n-date').value || null),
       recruitStart: $('#n-rs').value, recruitEnd: $('#n-re').value,
       mode: checked('mode'), place: $('#n-place').value, capacity: Number($('#n-cap').value),
       jobRule: checked('jobRule'), joinMode: checked('joinMode'),
       intro: $('#n-intro').value, nick: S.me().nick
     };
+    if (live.state !== 'off') {
+      const j = postingById($('#n-posting').value);
+      f.company = j ? j.company.slice(0, 30) : '';
+      if (j) { f.posting = j.id; f.postingTitle = j.title.slice(0, 120); f.postingEnd = j.apply.end; }
+    }
     const errors = R.validatePost(f, Date.now()).errors;
+    if (live.state !== 'off' && !f.posting) {
+      delete errors.company;
+      errors.posting = live.state === 'loading' ? '공고를 불러오는 중이에요. 잠시 뒤 다시 눌러 주세요.' : '실시간 채용 공고 중에서 하나를 골라 주세요.';
+    }
     if (!unknown && !f.interviewDate) errors.interviewDate = '면접일을 고르거나 ‘아직 몰라요’를 눌러 주세요.';
     if (Object.keys(errors).length) { showErrors(form, errors); return; }
     const btn = $('button[type="submit"]', form);
@@ -2379,6 +2481,15 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
       + '<button type="button" class="btn danger-outline" data-action="delete-post">글 지우기</button></div></section>';
   }
 
+  /* 글에 붙은 채용 공고: 원문 주소는 번호로 다시 만든다 */
+  function postingFact(p) {
+    const m = typeof p.posting === 'string' ? /^(alio|local|nara)-(\d{1,12})$/.exec(p.posting) : null;
+    if (!m) return '';
+    const url = LIVE_SRC[m[1]].url + m[2];
+    return '<div class="fact-wide"><dt>지원 공고</dt><dd><a class="link ext" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">'
+      + esc(p.postingTitle || p.company + ' 채용 공고') + '<span class="sr"> (새 창)</span></a>'
+      + (p.postingEnd ? ' <span class="muted">· 서류 마감 ' + esc(R.dateLabel(p.postingEnd)) + '</span>' : '') + '</dd></div>';
+  }
   function renderDetail() {
     const p = S.post(ui.postId);
     if (!p && S.watch && S.watch(ui.postId) === 'loading') {
@@ -2415,6 +2526,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
       + '<div><dt>진행</dt><dd>' + (p.mode === 'online' ? '온라인' : '오프라인 · ' + esc(p.place)) + '</dd></div>'
       + '<div><dt>인원</dt><dd>' + p.members.length + '/' + p.capacity + '명</dd></div>'
       + '<div><dt>모집 기간</dt><dd>' + recruitRange(p) + '</dd></div>'
+      + postingFact(p)
       + '<div><dt>방장</dt><dd>' + esc(host ? host.nick + ' · ' + host.job : p.job) + '</dd></div>'
       + '<div><dt>올린 때</dt><dd>' + esc(ago(p.createdAt, now)) + '</dd></div>'
       + '</dl>'
@@ -3001,25 +3113,33 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
 
   /* ---------- 채용 일정 ---------- */
   const JOBS = (window.JOBS && window.JOBS.items) || [];
-  /* 공공기관 공고는 /api/jobs (잡알리오 API, 서버에서 6시간마다 새로 받음)에서 더 받아 붙인다. 실서비스에서만 */
+  /* 공공 채용공고는 /api/jobs (잡알리오·클린아이·나라일터 API, 서버에서 6시간마다 새로 받음)에서 받아 붙인다. 실서비스에서만 */
+  /* 출처별 원문 주소는 서버가 준 값을 쓰지 않고 번호로 다시 만든다 */
+  const LIVE_SRC = {
+    alio: { name: '잡알리오', url: 'https://job.alio.go.kr/recruitview.do?idx=', corp: '공공기관/공기업' },
+    local: { name: '클린아이', url: 'https://job.cleaneye.go.kr/user/ypCareersData.do?idx=', corp: '공공기관/공기업' },
+    nara: { name: '나라일터', url: 'https://www.gojobs.go.kr/apmView.do?empmnsn=', corp: '정부/지자체/교육청' }
+  };
   const live = { state: window.MYEONSBANG_FIREBASE ? 'loading' : 'off', at: '', count: 0 };
   function okDate(v) { return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v); }
   function strList(v, max) { return Array.isArray(v) ? v.filter(function (x) { return typeof x === 'string'; }).slice(0, max || 12) : []; }
   function cleanLiveJob(j) {
-    if (!j || typeof j !== 'object' || typeof j.id !== 'string' || !/^alio-\d{1,12}$/.test(j.id)) return null;
+    const m = j && typeof j === 'object' && typeof j.id === 'string' ? /^(alio|local|nara)-(\d{1,12})$/.exec(j.id) : null;
+    if (!m) return null;
     if (typeof j.company !== 'string' || typeof j.title !== 'string' || !j.apply || !okDate(j.apply.end)) return null;
-    const url = 'https://job.alio.go.kr/recruitview.do?idx=' + j.id.slice(5);
+    const src = LIVE_SRC[m[1]];
+    const url = src.url + m[2];
     return {
       id: j.id, auto: true, company: j.company.slice(0, 60), title: j.title.slice(0, 120),
       jobs: strList(j.jobs, 8).length ? strList(j.jobs, 8) : ['직무 공고문 확인'],
       duties: strList(j.duties).filter(function (s) { return T.SUB_TO_DUTY[s]; }),
       types: strList(j.types).filter(function (s) { return T.TYPES.indexOf(s) >= 0; }),
-      corp: '공공기관/공기업',
+      corp: src.corp,
       regions: strList(j.regions, 16).filter(function (s) { return T.REGIONS.indexOf(s) >= 0; }),
       industries: strList(j.industries).filter(function (s) { return T.INDUSTRIES.indexOf(s) >= 0; }),
       apply: okDate(j.apply.start) ? { start: j.apply.start, end: j.apply.end } : { end: j.apply.end },
       steps: [], flow: typeof j.flow === 'string' ? j.flow.slice(0, 80) : '', note: typeof j.note === 'string' ? j.note.slice(0, 80) : '',
-      url: url, source: { name: '잡알리오 (자동)', url: url }
+      url: url, source: { name: src.name + ' (자동)', url: url }
     };
   }
   function loadLiveJobs() {
@@ -3050,13 +3170,15 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
     }
     const up = $('#upcoming-box');
     if (up) up.innerHTML = upcomingHtml();
+    if (ui.route === 'new') renderPostingBox();
   }
+  function newLink(j) { return LIVE_ID.test(j.id) ? '#new?posting=' + j.id : '#new?company=' + encodeURIComponent(j.company); }
   function jobsCheckHtml() {
     let s = '';
     if (live.state === 'ok') {
       const t = live.at ? new Date(live.at) : null;
       const when = t && !isNaN(t) ? R.dateLabel(R.todayKST(t.getTime())) + ' ' + String((t.getUTCHours() + 9) % 24).padStart(2, '0') + ':' + String(t.getUTCMinutes()).padStart(2, '0') : '';
-      s += '공공기관 공고 ' + live.count + '개를 잡알리오에서 실시간으로 받아요' + (when ? ' (' + esc(when) + ' 갱신)' : '') + '. ';
+      s += '공공기관·공기업·지자체 공고 ' + live.count + '개를 잡알리오, 클린아이, 나라일터에서 실시간으로 받아요' + (when ? ' (' + esc(when) + ' 갱신)' : '') + '. ';
     } else if (live.state === 'loading') s += '공고를 불러오는 중이에요. ';
     else s += '지금은 공고를 불러오지 못했어요. 잠시 뒤 새로고침해 보세요. ';
     return s + '일정은 회사 사정으로 바뀔 수 있으니 지원 전에 원문을 꼭 확인하세요.';
@@ -3116,7 +3238,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
       + '<p class="job-meta">' + [(j.types || []).join('·'), j.corp, (j.regions || []).join('·'), (j.industries || []).join('·')].filter(Boolean).map(esc).join(' · ') + '</p>'
       + '<dl class="job-dates"><div><dt>서류 접수</dt><dd>' + esc(applyText) + left + '</dd></div>' + next + '</dl>'
       + (j.note ? '<p class="job-note">' + esc(j.note) + '</p>' : '')
-      + '<div class="job-act"><a class="btn btn-primary btn-small" href="#new?company=' + encodeURIComponent(j.company) + '">이 공고로 면스 모집</a>'
+      + '<div class="job-act"><a class="btn btn-primary btn-small" href="' + newLink(j) + '">이 공고로 면스 모집</a>'
       + (count ? '<a class="btn btn-small" href="#board?q=' + encodeURIComponent(j.company) + '">모집 중인 면스 ' + count + '개</a>' : '')
       + '<a class="link ext" href="' + esc(j.url) + '" target="_blank" rel="noopener noreferrer">원문 보기<span class="sr"> (새 창)</span></a></div>'
       + '<p class="job-src">' + (j.auto ? '자동 수집: ' : '일정 확인: ') + '<a href="' + esc(j.source.url) + '" target="_blank" rel="noopener noreferrer">' + esc(j.source.name) + '</a></p>'
@@ -3279,7 +3401,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
         + (list.length ? '<ul class="cal-list">' + list.map(function (e) {
           return '<li class="cal-row"><span class="cal-kind ' + e.kind + '">' + esc(e.label) + '</span>'
             + '<span class="cal-what"><b>' + esc(e.j.company) + '</b> ' + esc(e.j.title) + '</span>'
-            + '<span class="cal-act"><a class="link" href="#new?company=' + encodeURIComponent(e.j.company) + '">면스 모집</a>'
+            + '<span class="cal-act"><a class="link" href="' + newLink(e.j) + '">면스 모집</a>'
             + '<a class="link ext" href="' + esc(e.j.url) + '" target="_blank" rel="noopener noreferrer">원문<span class="sr"> (새 창)</span></a></span></li>';
         }).join('') + '</ul>' : '<p class="muted">이 날은 마감하는 공고가 없어요.</p>')
         + '</section>';
@@ -3362,8 +3484,13 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
       return { route: 'board', rule: ['all', 'same', 'diverse', 'any'].indexOf(rule) >= 0 ? rule : 'all', q: (q.get('q') || '').slice(0, 40) };
     }
     if (h === 'new') {
-      const company = cut >= 0 ? (new URLSearchParams(raw.slice(cut + 1)).get('company') || '').trim().slice(0, 30) : '';
-      return company ? { route: 'new', company: company } : { route: 'new' };
+      const q = new URLSearchParams(cut >= 0 ? raw.slice(cut + 1) : '');
+      const company = (q.get('company') || '').trim().slice(0, 30);
+      const posting = (q.get('posting') || '').trim();
+      const out = { route: 'new' };
+      if (company) out.company = company;
+      if (/^(alio|local|nara)-\d{1,12}$/.test(posting)) out.posting = posting;
+      return out;
     }
     if (h === 'login' || h === 'signup') {
       const next = cut >= 0 ? (new URLSearchParams(raw.slice(cut + 1)).get('next') || '') : '';
@@ -3434,9 +3561,10 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
     }
     if (r.rule) { ui.filters.rule = r.rule; ui.filters.q = r.q; saveFilters(); }
     ui.prefillCompany = r.company || '';
+    ui.prefillPosting = r.posting || '';
     /* 글쓰기는 로그인한 사람만: 로그인 화면으로 보냈다가 끝나면 돌아온다 */
     if (r.route === 'new' && !S.me().signedIn) {
-      const back = 'new' + (r.company ? '?company=' + encodeURIComponent(r.company) : '');
+      const back = 'new' + (r.posting ? '?posting=' + r.posting : r.company ? '?company=' + encodeURIComponent(r.company) : '');
       history.replaceState(null, '', '#login?next=' + encodeURIComponent(back));
       r = { route: 'login', next: back };
     }
@@ -3479,6 +3607,22 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
         confirmSheet({ title: '예시를 다시 채울까요?', body: '체험하며 만든 글과 신청이 모두 지워지고 처음 예시로 돌아가요.', ok: '다시 채우기', danger: true })
           .then(function (yes) { if (yes) { S.resetDemo(); toast('처음 예시로 돌아갔어요.'); go('board'); } });
         break;
+      case 'posting-pick': {
+        const j = postingById(t.dataset.id);
+        if (!j) { toast('이 공고는 접수가 끝났거나 목록에서 빠졌어요.'); renderPostingBox(); break; }
+        $('#n-posting').value = j.id;
+        ui.dirty = true;
+        const er = $('[data-err="posting"]'); if (er) er.textContent = '';
+        renderPostingBox();
+        const fd = $('#posting-field'); const btn = fd && $('[data-action="posting-clear"]', fd); if (btn) btn.focus();
+        break;
+      }
+      case 'posting-clear': {
+        $('#n-posting').value = '';
+        renderPostingBox();
+        const f2 = $('#n-find'); if (f2) f2.focus();
+        break;
+      }
       case 'cap-minus':
       case 'cap-plus': {
         const o = $('#n-cap');
@@ -3610,6 +3754,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
     }
     if (t.id === 'f-q') { ui.filters.q = t.value; saveFilters(); renderList(); syncBoardUrl(); }
     if (t.id === 'n-intro') $('#n-intro-count').textContent = t.value.length + '/300';
+    if (t.id === 'n-find') $('#posting-results').innerHTML = postingResultsHtml(t.value);
     if (t.id === 'p-intro') $('#p-intro-count').textContent = t.value.length + '/60';
     if (t.closest && (t.closest('#profile-form') || t.closest('#pw-form'))) {
       const fd = t.closest('.field'); const er = fd && $('[data-err]', fd);
@@ -3639,6 +3784,12 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeSheet();
+    /* 공고 검색칸에서 Enter는 글을 올리지 않고 맨 위 공고를 고른다 */
+    if (e.target && e.target.id === 'n-find' && e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) {
+      e.preventDefault();
+      const first = $('#posting-results .pk-item');
+      if (first) first.click();
+    }
     /* 채팅: 컴퓨터에서는 Enter로 보내고 Shift+Enter로 줄바꿈. 한글 입력 중(조합 중)에는 보내지 않는다 */
     if (e.target && e.target.id === 'c-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) {
       const fine = window.matchMedia && window.matchMedia('(pointer: fine)').matches;

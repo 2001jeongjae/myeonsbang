@@ -64,9 +64,14 @@ service cloud.firestore {
       let d = request.resource.data;
       let uid = request.auth.uid;
       let fields = ['company', 'job', 'jobKey', 'stage', 'interviewDate', 'recruitStart', 'recruitEnd', 'mode', 'place', 'capacity',
-                    'jobRule', 'joinMode', 'intro', 'hostId', 'closed', 'createdAt', 'members', 'applicants'];
+                    'jobRule', 'joinMode', 'intro', 'hostId', 'closed', 'createdAt', 'members', 'applicants',
+                    'posting', 'postingTitle', 'postingEnd'];
       return d.keys().hasAll(fields) && d.keys().hasOnly(fields)
         && d.hostId == uid
+        // 실시간 채용 공고(잡알리오·클린아이·나라일터)에서 고른 글만 올린다
+        && d.posting is string && d.posting.matches('^(alio|local|nara)-[0-9]{1,12}$')
+        && str(d.postingTitle, 1, 120)
+        && d.postingEnd is string && d.postingEnd.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
         && str(d.company, 1, 30) && str(d.job, 1, 20) && str(d.jobKey, 1, 30)
         && d.stage in ['1차 실무', '2차 임원·인성', 'PT', '토론', '기타']
         && (d.interviewDate == null || (d.interviewDate is string && d.interviewDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))
