@@ -1380,246 +1380,13 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
   root.TAXO = { DUTIES: DUTIES, TYPES: TYPES, CORPS: CORPS, REGIONS: REGIONS, INDUSTRIES: INDUSTRIES, SUB_TO_DUTY: SUB_TO_DUTY };
 })(typeof window !== 'undefined' ? window : globalThis);
 
-/* 채용 일정 (사람이 공고문을 보고 직접 정리한 목록)
-   - checkedAt: 이 날짜에 원문으로 확인함. 일정은 회사 사정으로 바뀔 수 있어서 화면에 늘 원문 링크를 같이 보여 준다.
-   - apply: 서류 접수 기간(start 없으면 마감만 표시, rolling: true면 채용 시 마감), steps: 그다음 전형 일정.
-   - jobs: 공고에 적힌 직무 이름 그대로(카드에 보여 줌).
-   - duties·types·corp·regions·industries: taxonomy.js의 이름 그대로(필터에 씀). 공고에 없는 지역은 적지 않는다.
-     날짜를 정확히 모르면 when(보여 줄 글)과 sort(정렬용 날짜)만 적는다. 없는 날짜를 지어내지 않는다.
-   - url: 지원·원문 링크, source: 일정을 확인한 곳 */
+/* 채용 일정
+   - 사람이 직접 정리하던 공고는 2026-11-23에 모두 지웠다. 이제 채용 일정은 실시간으로 받는 공고만 보여 준다.
+   - 공고는 /api/jobs (잡알리오 공공기관 채용정보 API, Vercel 서버에서 6시간마다 새로 받음)에서 불러와 app.js가 여기에 붙인다.
+   - 예전 정리본은 저장소 기록(git)에 남아 있다. */
 (function (root) {
   'use strict';
-  root.JOBS = {
-    checkedAt: '2026-11-21',
-    items: [
-      {
-        id: 'hmc-se-2027',
-        company: '현대자동차',
-        title: '2027 서비스엔지니어 채용전환형 인턴십',
-        jobs: ['하이테크 진단/정비'],
-        duties: ['설비/기계유지보수'], types: ['인턴'], corp: '대기업', regions: ['지역 제한없음'], industries: ['자동차/모빌리티'],
-        apply: { start: '2026-11-11', end: '2026-11-30', endTime: '17:00' },
-        steps: [
-          { label: '온라인 채용설명회 (사전 신청자)', start: '2026-11-25', end: '2026-11-26' }
-        ],
-        note: '3주 인턴십 후 전환 평가 · 전국 22개 하이테크센터 근무',
-        url: 'https://talent.hyundai.com',
-        source: { name: '대학 취업지원팀 공지', url: 'https://www.syu.ac.kr/sec9' }
-      },
-      {
-        id: 'geps-2026h2',
-        company: '공무원연금공단',
-        title: '2026년 하반기 신입직원(전산직, 장애·보훈) 채용',
-        jobs: ['전산직', '사무직'],
-        duties: ['시스템/ERP개발', '사무/문서관리'], types: ['신입'], corp: '공공기관/공기업', regions: [], industries: ['공공/비영리'],
-        apply: { start: '2026-10-22', end: '2026-11-05', endTime: '18:00' },
-        steps: [
-          { label: '필기·실기시험', start: '2026-11-14' },
-          { label: '1차 면접 (AI 역량검사)', start: '2026-11-17', end: '2026-11-19' },
-          { label: '2차 면접 (종합역량면접 + 인바스켓 PT면접)', start: '2026-11-23', end: '2026-11-24', interview: true },
-          { label: '최종 합격 발표', start: '2026-11-27' }
-        ],
-        url: 'https://www.korea.kr/archive/recruitInfoView.do?dataId=397369',
-        source: { name: '정책브리핑 채용정보 (나라일터)', url: 'https://www.korea.kr/archive/recruitInfoView.do?dataId=397369' }
-      },
-      {
-        id: 'dongjin-2611',
-        company: '동진쎄미켐',
-        title: '2026년 11월 신입/경력 정기채용',
-        jobs: ['연구개발', '품질관리', '품질보증', '생산관리', '생산기술', 'IT'],
-        duties: ['화학/에너지/환경', '품질관리(QC/QA)', '생산/공정관리', '시스템/ERP개발'], types: ['신입', '경력직'], corp: '중견기업', regions: [], industries: ['반도체', '화학/에너지'],
-        apply: { start: '2026-11-06', end: '2026-11-15', endTime: '23:59' },
-        steps: [
-          { label: '서류 결과 발표', start: '2026-11-20' },
-          { label: '인성검사 (온라인)', start: '2026-11-20', end: '2026-11-22' },
-          { label: '면접', when: '12월 1·2주차 예정', sort: '2026-12-01', interview: true },
-          { label: '최종 합격 발표', start: '2026-12-16' }
-        ],
-        url: 'https://dongjin.careerlink.kr',
-        source: { name: '대학 취업센터 공지', url: 'https://biz.korea.ac.kr/cdc/recruitment/recruitment_view.html?no=14874&page=1' }
-      },
-      {
-        id: 'medison-2026h2',
-        company: '삼성메디슨',
-        title: '2026 하반기 3급 신입사원 채용',
-        jobs: ['회로/FPGA개발', 'SW개발', '영상개발'],
-        duties: ['전기/전자/반도체', '의공학/의료기기'], types: ['신입'], corp: '대기업', regions: [], industries: ['바이오/제약'],
-        apply: { start: '2026-11-10', end: '2026-11-19', endTime: '17:00' },
-        steps: [],
-        flow: '직무적합성평가 → 직무적성검사 → 종합면접 → 채용검진',
-        url: 'https://cse.snu.ac.kr/ko/community/notice/25850',
-        source: { name: '대학 학과 공지', url: 'https://cse.snu.ac.kr/ko/community/notice/25850' }
-      },
-      {
-        id: 'hyundai-steel-2026h2',
-        company: '현대제철',
-        title: '[일반직] 2026년 하반기 신입 채용',
-        jobs: ['생산관리', '기계정비', '전기정비', '토건'],
-        duties: ['생산/공정관리', '설비/기계유지보수', '토목/조경'], types: ['신입'], corp: '대기업', regions: ['충청', '전라'], industries: ['철강/금속'],
-        apply: { start: '2026-10-22', end: '2026-11-09', endTime: '13:00' },
-        steps: [],
-        note: '근무지 충남 당진, 전남 순천',
-        url: 'https://hyundai-steel.recruiter.co.kr/',
-        source: { name: '링커리어 공고', url: 'https://linkareer.com/activity/359039' }
-      },
-      {
-        id: 'hdg-2026h2',
-        company: '현대백화점그룹',
-        title: '2026 하반기 신입사원 채용',
-        jobs: ['영업관리', '마케팅', '경영지원', 'MD', '재경', '법무', '물류', '디지털기획'],
-        duties: ['영업관리/기획', '마케팅기획/전략', 'MD/상품기획', '재무/IR', '총무/법무/비서', '물류/SCM관리', '서비스기획/운영'], types: ['신입'], corp: '대기업', regions: [], industries: ['유통/커머스'],
-        apply: { end: '2026-11-12' },
-        steps: [
-          { label: '인턴실습 (5주)', when: '12월 말 ~ 1월 말', sort: '2026-12-28' }
-        ],
-        flow: 'AI 역량면접 → 1차 실무면접 → 인턴실습(5주) → 2차 임원면접',
-        url: 'https://ehyundai-recruit.com/',
-        source: { name: '대학 학과 공지', url: 'https://cse.snu.ac.kr/en/community/notice/25805' }
-      },
-      {
-        id: 'seoulmetro-2026h2',
-        company: '서울교통공사',
-        title: '2026년 하반기 신입사원(채용형 인턴) 공개채용',
-        jobs: ['사무', '차량', '전기', '정보통신', '궤도', '신호', '기계', '전자', '토목', '건축'],
-        duties: ['사무/문서관리', '설비/기계유지보수', '전기/소방/설비', '토목/조경', '건축/인테리어설계'], types: ['신입', '인턴'], corp: '공공기관/공기업', regions: ['서울'], industries: ['공공/비영리'],
-        apply: { start: '2026-11-03', end: '2026-11-09', endTime: '18:00' },
-        steps: [
-          { label: '서류전형 발표', start: '2026-11-19' },
-          { label: '필기시험·인성검사', start: '2026-11-28' },
-          { label: '면접시험', start: '2026-12-14', end: '2026-12-18', interview: true },
-          { label: '최종 합격 발표', start: '2027-01-12' }
-        ],
-        note: '정규직 전환 시 일반직 7급 · 학력 제한 없음',
-        url: 'https://linkareer.com/activity/357927',
-        source: { name: '링커리어 (공사 공고 일정 정리)', url: 'https://community.linkareer.com/employment_data/6697292' }
-      },
-      {
-        id: 'seis-2027',
-        company: '한국사회적기업진흥원',
-        title: '2027년 기능직(총무·비서) 및 기간제근로자 채용',
-        jobs: ['총무·비서', '영문에디터', '공공행정 지원'],
-        duties: ['총무/법무/비서', '사무/문서관리', '출판/편집'], types: ['신입', '계약직'], corp: '공공기관/공기업', regions: ['경기', '광주', '대구', '부산'], industries: ['공공/비영리'],
-        apply: { start: '2026-11-10', end: '2026-11-25' },
-        steps: [],
-        note: '정규직은 기능직(총무·비서) 1명 · 나머지는 기간제',
-        url: 'https://socialenterprise.brms.kr',
-        source: { name: '정책브리핑 채용정보 (나라일터)', url: 'https://www.korea.kr/archive/recruitInfoView.do?dataId=399086' }
-      },
-      {
-        id: 'samil-xbrl-2611',
-        company: '삼일회계법인',
-        title: 'AX Node XBRL센터 신입 채용',
-        jobs: ['XBRL 공시'],
-        duties: ['재무/회계/세무'], types: ['신입'], corp: '중견기업', regions: ['서울'], industries: ['금융/보험'],
-        apply: { start: '2026-11-11', rolling: true },
-        steps: [],
-        flow: '서류전형 → 인성검사(필요시) → 면접전형 → 최종 합격',
-        note: '재무제표·주석 XBRL 공시 검토 업무 · 채용 시 마감',
-        url: 'https://linkareer.com/activity/363753',
-        source: { name: '링커리어 공고', url: 'https://linkareer.com/activity/363753' }
-      },
-      {
-        id: 'mbc-2027',
-        company: 'MBC',
-        title: '2027 신입사원 공개채용',
-        jobs: ['콘텐츠전략PD', '광고/콘텐츠 마케팅', '시사교양PD', '방송촬영', '취재기자', '영상기자', '방송경영(인사)', '미디어엔지니어'],
-        duties: ['PD/연출/방송제작', '광고기획/AE', 'SNS/콘텐츠마케팅', '영상촬영/편집', '인사/채용/노무'], types: ['신입'], corp: '중견기업', regions: ['서울'], industries: ['미디어/엔터'],
-        apply: { start: '2026-11-13', end: '2026-11-30' },
-        steps: [],
-        note: '학력 무관 · 근무지 서울 마포구',
-        url: 'https://linkareer.com/activity/364424',
-        source: { name: '링커리어 공고', url: 'https://linkareer.com/activity/364424' }
-      },
-      {
-        id: 'ahnlab-2026',
-        company: '안랩',
-        title: '2026년 전직군 대규모 공개채용',
-        jobs: ['OS기반 SW개발', 'Web 개발', 'AI/ML 개발', '보안위협 분석', 'DevOps', 'QA', '국내영업', '보안컨설팅', '기술지원 엔지니어', 'IT 인프라 운영', 'HR'],
-        duties: ['시스템/ERP개발', '백엔드/서버개발', '프론트엔드개발', 'AI/ML엔지니어', 'DevOps/클라우드/보안', 'QA/기술지원', 'B2B영업', '경영분석/컨설팅', '인사/채용/노무'], types: ['신입', '경력직'], corp: '중견기업', regions: [], industries: ['IT/SW'],
-        apply: { start: '2026-11-05', end: '2026-11-29', endTime: '14:59' },
-        steps: [],
-        note: '24개 직무 · 신입 지원 가능 직무는 원문에서 확인',
-        url: 'https://jasoseol.com/recruit/107053',
-        source: { name: '자소설닷컴 공고', url: 'https://jasoseol.com/recruit/107053' }
-      },
-      {
-        id: 'boryung-mr-2027',
-        company: '보령',
-        title: '2027년 상반기 영업(MR) 신입사원 공개채용',
-        jobs: ['제약영업(MR)'],
-        duties: ['B2B영업', '영업관리/기획'], types: ['신입'], corp: '중견기업', regions: ['서울', '지역 제한없음'], industries: ['바이오/제약'],
-        apply: { start: '2026-11-02', end: '2026-11-22', endTime: '23:59' },
-        steps: [],
-        note: '영업·마케팅 자회사 보령파마솔루션 소속 · 합격 후 예산캠퍼스 3~4주 합숙 교육',
-        url: 'https://recruit.boryung.co.kr',
-        source: { name: '뉴스더보이스 기사', url: 'https://newsthevoice.com/news/articleView.html?idxno=47738' }
-      },
-      {
-        id: 'sangju-sm-2027',
-        company: '상주성모병원',
-        title: '2027년 신규간호사 모집',
-        jobs: ['간호사'],
-        duties: ['간호사/간호조무사'], types: ['신입'], corp: '병원', regions: ['경상'], industries: [],
-        apply: { end: '2026-11-30' },
-        steps: [],
-        note: '삼백의료재단 · 경북 상주',
-        url: 'https://uni.dongseo.ac.kr/nursing/?pCode=jobinfo&pg=1',
-        source: { name: '대학 간호학과 취업정보', url: 'https://uni.dongseo.ac.kr/nursing/?pCode=jobinfo&pg=1' }
-      },
-      {
-        id: 'innocean-uiux',
-        company: '이노션',
-        title: 'UI/UX 디자인 채용',
-        jobs: ['UI/UX 디자인'],
-        duties: ['UI/UX디자인'], types: ['경력직'], corp: '대기업', regions: [], industries: ['미디어/엔터'],
-        apply: { end: '2026-12-31' },
-        steps: [],
-        flow: '서류전형 → 면접전형 → 인성검사 → 입사',
-        note: '글로벌 브랜드·자동차 디지털 서비스 경험 우대 · 영어 소통 필요',
-        url: 'https://linkareer.com/activity/357199',
-        source: { name: '링커리어 공고', url: 'https://linkareer.com/activity/357199' }
-      },
-      {
-        id: 'suhyup-2026h2',
-        company: '수협중앙회',
-        title: '2026년 하반기 신입직원 채용',
-        jobs: ['일반', '손해사정사', '인도네시아어', '수산식품', '전기'],
-        duties: ['사무/문서관리', '보험심사/손해사정', '전기/소방/설비'], types: ['신입'], corp: '금융권', regions: [], industries: ['금융/보험'],
-        apply: { start: '2026-10-22', end: '2026-11-06', endTime: '17:00' },
-        steps: [],
-        flow: '필기전형 → 직무적성검사 → 1차면접 → 2차면접 → 최종 합격',
-        url: 'https://linkareer.com/activity/358948',
-        source: { name: '링커리어 공고', url: 'https://linkareer.com/activity/358948' }
-      },
-      {
-        id: 'fsec-2027',
-        company: '금융보안원',
-        title: '2027년도 신입직원 채용',
-        jobs: ['Tech·Security', 'Offensive Security', '전략기획'],
-        duties: ['DevOps/클라우드/보안', '경영기획/전략', '리스크/컴플라이언스'], types: ['신입'], corp: '공공기관/공기업', regions: ['경기', '서울'], industries: ['금융/보험'],
-        apply: { start: '2026-09-17', end: '2026-09-30' },
-        steps: [
-          { label: '최종 합격자 선발', when: '12월 예정', sort: '2026-12-15' }
-        ],
-        flow: '1차 필기 → 2차 필기 → 1차 면접 → 2차 면접',
-        note: '20명 안팎 · 근무지 경기 성남·용인, 서울',
-        url: 'https://www.invione.com/jobs/recruitment/open/detail/178871',
-        source: { name: '바이라인네트워크 기사', url: 'https://byline.network/2026/09/18-620/' }
-      },
-      {
-        id: 'ekr-2026',
-        company: '한국농어촌공사',
-        title: '2026년도 직무중심 신입사원(5급, 6급) 채용',
-        jobs: ['행정', '토목', '기계', '전기', '건축'],
-        duties: ['사무/문서관리', '토목/조경', '설비/기계유지보수', '전기/소방/설비', '건축/인테리어설계'], types: ['신입'], corp: '공공기관/공기업', regions: ['지역 제한없음'], industries: ['공공/비영리'],
-        apply: { start: '2026-10-06', end: '2026-10-19', endTime: '14:00' },
-        steps: [],
-        note: '채용 인원 329명',
-        url: 'https://www.korea.kr/archive/recruitInfoView.do?dataId=395617',
-        source: { name: '정책브리핑 채용정보 (나라일터)', url: 'https://www.korea.kr/archive/recruitInfoView.do?dataId=395617' }
-      }
-    ]
-  };
+  root.JOBS = { items: [] };
 })(typeof window !== 'undefined' ? window : globalThis);
 
 /* 면스방 저장소 (실서비스): Firebase Firestore + 아이디·비밀번호 로그인.
@@ -2343,7 +2110,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
       + miniCard('m1 urgent', 'D-3', '생산기술 · 1차 실무', 'same', '온라인 · 바로 참가', 2, 4)
       + miniCard('m2', 'D-8', '직무 모두 다르게 · PT', 'diverse', '오프라인 · 방장 수락', 3, 5)
       + '</div></section>'
-      + upcomingHtml()
+      + '<div id="upcoming-box">' + upcomingHtml() + '</div>'
       + '<section class="board" aria-labelledby="list-h">'
       + '<div class="board-head"><h2 id="list-h" tabindex="-1">모집 중인 스터디</h2><p class="count" id="count" aria-live="polite"></p></div>'
       + '<div class="tools"><div class="search"><label class="sr" for="f-q">회사나 직무로 찾기</label>'
@@ -3260,7 +3027,7 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
     fetch('/api/jobs', { headers: { Accept: 'application/json' } })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) {
-        if (!d || !Array.isArray(d.items) || !d.items.length) { live.state = 'none'; return; }
+        if (!d || !Array.isArray(d.items) || !d.items.length) { live.state = 'none'; refreshJobViews(); return; }
         /* 사람이 정리한 공고와 같은 기관·같은 마감이면 사람이 정리한 쪽만 둔다 */
         const mine = {};
         JOBS.forEach(function (j) { if (j.apply && j.apply.end) mine[R.squash(j.company) + '|' + j.apply.end] = true; });
@@ -3270,22 +3037,28 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
           if (j && !mine[R.squash(j.company) + '|' + j.apply.end] && !JOBS.some(function (x) { return x.id === j.id; })) { JOBS.push(j); n++; }
         });
         live.state = 'ok'; live.count = n; live.at = typeof d.updatedAt === 'string' ? d.updatedAt : '';
-        if (ui.route === 'jobs' && $('#jobs-list')) {
-          const panel = $('#jf-panel'); if (panel) panel.innerHTML = jobFilterPanel(ui.jobFilter);
-          const chk = $('.jobs-check'); if (chk) chk.innerHTML = jobsCheckHtml();
-          renderJobList();
-        }
+        refreshJobViews();
       })
-      .catch(function () { live.state = 'none'; });
+      .catch(function () { live.state = 'none'; refreshJobViews(); });
+  }
+  /* 공고가 도착하면 보고 있는 화면만 고친다 (입력 중인 검색어는 건드리지 않음) */
+  function refreshJobViews() {
+    if (ui.route === 'jobs' && $('#jobs-list')) {
+      const panel = $('#jf-panel'); if (panel) panel.innerHTML = jobFilterPanel(ui.jobFilter);
+      const chk = $('.jobs-check'); if (chk) chk.innerHTML = jobsCheckHtml();
+      renderJobList();
+    }
+    const up = $('#upcoming-box');
+    if (up) up.innerHTML = upcomingHtml();
   }
   function jobsCheckHtml() {
-    const checked = window.JOBS && window.JOBS.checkedAt;
-    let s = checked ? esc(R.dateLabel(checked)) + '에 공고문으로 확인한 일정이에요. ' : '';
+    let s = '';
     if (live.state === 'ok') {
       const t = live.at ? new Date(live.at) : null;
       const when = t && !isNaN(t) ? R.dateLabel(R.todayKST(t.getTime())) + ' ' + String((t.getUTCHours() + 9) % 24).padStart(2, '0') + ':' + String(t.getUTCMinutes()).padStart(2, '0') : '';
-      s += '공공기관 공고 ' + live.count + '개는 잡알리오에서 자동으로 받아요' + (when ? ' (' + esc(when) + ' 갱신)' : '') + '. ';
-    } else if (live.state === 'loading') s += '공공기관 공고를 불러오는 중이에요. ';
+      s += '공공기관 공고 ' + live.count + '개를 잡알리오에서 실시간으로 받아요' + (when ? ' (' + esc(when) + ' 갱신)' : '') + '. ';
+    } else if (live.state === 'loading') s += '공고를 불러오는 중이에요. ';
+    else s += '지금은 공고를 불러오지 못했어요. 잠시 뒤 새로고침해 보세요. ';
     return s + '일정은 회사 사정으로 바뀔 수 있으니 지원 전에 원문을 꼭 확인하세요.';
   }
   function rangeLabel(a, b) { return b && b !== a ? R.dateLabel(a) + '~' + R.dateLabel(b) : R.dateLabel(a); }
@@ -3534,12 +3307,13 @@ body:not(.entered) .hero[data-enter] .mini.m2 { animation: rise-m2 .7s .22s var(
     box.innerHTML = jobFilterActive(f)
       + '<p class="count jobs-count" aria-live="polite">공고 ' + list.length + '개</p>'
       + (list.length ? '<ol class="jobs">' + list.map(function (j) { return jobCard(j, today, now, f); }).join('') + '</ol>'
+        : live.state === 'loading' ? '<div class="empty"><p class="empty-t">공고를 불러오는 중이에요…</p></div>'
         : '<div class="empty"><p class="empty-t">조건에 맞는 공고가 아직 없어요.</p><p>조건을 줄여 보세요.</p><a class="btn" href="#jobs">전체 공고 보기</a></div>');
   }
   function renderJobs() {
     if (!ui.jobFilter) ui.jobFilter = emptyFilter();
     view.innerHTML = '<a class="back" href="#board">← 모집 글</a><h1 class="page-h">채용 일정</h1>'
-      + '<p class="lead jobs-lead">면접을 앞둔 공고를 모았어요. 같은 공고에 지원했다면 바로 면스를 모집해 보세요.</p>'
+      + '<p class="lead jobs-lead">공공기관 채용 공고를 실시간으로 모았어요. 같은 공고에 지원했다면 바로 면스를 모집해 보세요.</p>'
       + '<p class="jobs-check">' + jobsCheckHtml() + '</p>'
       + viewSwitch(ui.jobFilter)
       + jobFilterBar(ui.jobFilter)
